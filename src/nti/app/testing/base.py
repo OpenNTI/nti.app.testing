@@ -267,12 +267,14 @@ class _UnicodeTestApp(_TestApp):
 		f.__name__ = name
 		return f
 
-	get = _make_('get')
-	put = _make_('put')
-	post = _make_('post')
-	put_json = _make_('put_json')
-	post_json = _make_('post_json')
-	delete = _make_( 'delete' )
+	# XXX: PY3: These change between bytes and strings, bytes in py2, unicode
+	# strings in py 3
+	get = _make_(b'get')
+	put = _make_(b'put')
+	post = _make_(b'post')
+	put_json = _make_(b'put_json')
+	post_json = _make_(b'post_json')
+	delete = _make_( b'delete' )
 
 	del _make_
 
