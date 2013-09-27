@@ -308,11 +308,12 @@ class _AppTestBaseMixin(object):
 
 		if user is self.extra_environ_default_user and 'username' in kwargs:
 			user = str(kwargs.pop( 'username' ) )
+		password = str(kwargs.pop('user_password', 'temp001'))
 
 		# Simulate what some browsers or command line clients do by encoding the '@'
 		user = user.replace( '@', "%40" )
 		result = {
-			b'HTTP_AUTHORIZATION': b'Basic ' + (user + ':temp001').encode('base64'),
+			b'HTTP_AUTHORIZATION': b'Basic ' + (user + ':%s' % password).encode('base64'),
 			b'HTTP_ORIGIN': self.default_origin, # To trigger CORS
 			b'HTTP_USER_AGENT': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.6 (KHTML, like Gecko) Chrome/23.0.1239.0 Safari/537.6',
 			b'paste.throw_errors': True, # Cause paste to throw everything in case it gets in the pipeline
