@@ -6,7 +6,7 @@ from hamcrest import none
 from pyramid.testing import setUp as psetUp
 from pyramid.testing import tearDown as ptearDown
 
-
+__test__ = False
 
 _old_pw_manager = None
 def setUpPackage():
