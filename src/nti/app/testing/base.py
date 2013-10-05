@@ -17,33 +17,32 @@ logger = __import__('logging').getLogger(__name__)
 #disable: accessing protected members, too many methods
 #pylint: disable=W0212,R0904
 
-from nti.testing.base import ConfiguringTestBase
+from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
+from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
 
 from nose.tools import assert_raises
 
-from nti.contentlibrary import interfaces as lib_interfaces
 from nti.contentsearch import interfaces as search_interfaces
-from nti.externalization.externalization import to_json_representation
 import nti.contentsearch
-import nti.contentsearch.interfaces
+
 import pyramid.config
 
 
 from webtest import TestApp as _TestApp
-import webob.datetime_utils
-import datetime
-import os.path
 
-import urllib
-from nti.dataserver import users, classes, providers
+
+
+
+
+from nti.dataserver import users, classes
 from nti.ntiids import ntiids
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.dataserver.tests import mock_dataserver
 
-import anyjson as json
+
 from urllib import quote as UQ
-from persistent import Persistent
+
 from zope import interface
 from zope import component
 from zope.deprecation import __show__
@@ -100,7 +99,7 @@ class _TestBaseMixin(object):
 
 
 TestBaseMixin = _TestBaseMixin
-class ConfiguringTestBase(_TestBaseMixin,ConfiguringTestBase):
+class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 	"""
 	Attributes:
 	self.config A pyramid configurator. Note that it does not have a
@@ -139,7 +138,7 @@ class ConfiguringTestBase(_TestBaseMixin,ConfiguringTestBase):
 		ptearDown()
 		super(ConfiguringTestBase,self).tearDown()
 from nti.appserver import pyramid_authorization
-class SharedConfiguringTestBase(_TestBaseMixin,nti.tests.SharedConfiguringTestBase):
+class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	HANDLE_GC = True # Must do GCs for ZCA cleanup. See superclass
 

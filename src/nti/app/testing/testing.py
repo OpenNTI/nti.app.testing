@@ -29,12 +29,6 @@ def tearDownPackage():
 import pyramid.interfaces
 
 
-import zope.component as component
-
-from nti.dataserver.tests import mock_dataserver
-import nti.tests
-
-
 from pyramid_mailer.interfaces import IMailer
 from pyramid_mailer.mailer import DummyMailer as _DummyMailer
 from repoze.sendmail.interfaces import IMailDelivery
