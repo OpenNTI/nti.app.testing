@@ -34,7 +34,7 @@ from webtest import TestApp as _TestApp
 
 
 
-from nti.dataserver import users, classes
+from nti.dataserver import users
 from nti.ntiids import ntiids
 from nti.dataserver import interfaces as nti_interfaces
 
