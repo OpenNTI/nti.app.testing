@@ -75,6 +75,7 @@ class ByteHeadersDummyRequest(_DummyRequest):
 
 class DummyRequest(ByteHeadersDummyRequest):
 	possible_site_names = ()
+	if_unmodified_since = None
 	def _on_set_header( self, key, val ):
 		from nti.appserver.tweens.zope_site_tween import _get_possible_site_names
 		site_names = _get_possible_site_names( self )
