@@ -20,7 +20,17 @@ logger = __import__('logging').getLogger(__name__)
 from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
 from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
 
+from pyramid.testing import setUp as psetUp
+from pyramid.testing import tearDown as ptearDown
+
+from .testing import ITestMailDelivery
+from .testing import TestMailDelivery
+
 from nose.tools import assert_raises
+from hamcrest import assert_that
+from hamcrest import is_
+from hamcrest import none
+from hamcrest import is_not
 
 from nti.contentsearch import interfaces as search_interfaces
 import nti.contentsearch
@@ -30,7 +40,7 @@ import pyramid.config
 
 from webtest import TestApp as _TestApp
 
-
+from nti.app.pyramid_zope import z3c_zpt
 
 
 
@@ -49,6 +59,18 @@ from zope.deprecation import __show__
 
 from .matchers import has_permission, doesnt_have_permission
 from .request_response import DummyRequest
+
+def _create_request( self, request_factory, request_args ):
+	self.request = request_factory( *request_args )
+	if request_factory is DummyRequest:
+		# See the WebTest 'Framework Hooks' documentation
+		self.request.environ['paste.testing'] = True
+		self.request.environ['paste.testing_variables'] = {}
+
+		if 'REQUEST_METHOD' not in self.request.environ:
+			# req'd by repoze.who 2.1
+			self.request.environ['REQUEST_METHOD'] = 'UNKNOWN'
+
 
 class _TestBaseMixin(object):
 	set_up_packages = ('nti.appserver',)
@@ -107,7 +129,10 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 	self.request A pyramid request
 	"""
 
-	def setUp( self, pyramid_request=True, request_factory=DummyRequest, request_args=() ):
+	def setUp( self,
+			   pyramid_request=True,
+			   request_factory=DummyRequest,
+			   request_args=() ):
 		"""
 		:return: The `Configurator`, which is also in ``self.config``.
 		"""
@@ -117,8 +142,11 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 		if pyramid_request:
 			_create_request( self, request_factory, request_args )
 
-		self.config = psetUp(registry=component.getGlobalSiteManager(),request=self.request,hook_zca=False)
+		self.config = psetUp(registry=component.getGlobalSiteManager(),
+							 request=self.request,
+							 hook_zca=False)
 		self.config.setup_registry()
+
 		if pyramid_request and not getattr( self.request, 'registry', None ):
 			self.request.registry = component.getGlobalSiteManager()
 
@@ -128,7 +156,9 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 			self.config.include('pyramid_chameleon')
 			self.config.include('pyramid_mako')
 
-			component.provideUtility( z3c_zpt.renderer_factory, pyramid.interfaces.IRendererFactory, name=".pt" )
+			component.provideUtility( z3c_zpt.renderer_factory,
+									  pyramid.interfaces.IRendererFactory,
+									  name=".pt" )
 			mailer = TestMailDelivery()
 			component.provideUtility( mailer, ITestMailDelivery )
 
@@ -137,7 +167,7 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 	def tearDown( self ):
 		ptearDown()
 		super(ConfiguringTestBase,self).tearDown()
-from nti.appserver import pyramid_authorization
+
 class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	HANDLE_GC = True # Must do GCs for ZCA cleanup. See superclass
@@ -147,7 +177,11 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 	security_policy = None
 
 	@classmethod
-	def setUpClass( cls, request_factory=DummyRequest, request_args=(), security_policy_factory=None, force_security_policy=True ):
+	def setUpClass( cls,
+					request_factory=DummyRequest,
+					request_args=(),
+					security_policy_factory=None,
+					force_security_policy=True ):
 		"""
 		:return: The `Configurator`, which is also in ``self.config``.
 		"""
@@ -190,8 +224,6 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 		return self.config
 
 	def tearDown( self ):
-		# Some things have to be done everytime
-		pyramid_authorization._clear_caches()
 		super(SharedConfiguringTestBase,self).tearDown()
 
 class NewRequestSharedConfiguringTestBase(SharedConfiguringTestBase):
@@ -287,7 +319,7 @@ def TestApp(app, **kwargs):
 
 	:return: A WebTest testapp.
 	"""
-
+	# TODO: Load from paste?
 	return _TestApp( CORSInjector( CORSOptionHandler( ErrorMiddleware( ZODBGCMiddleware( app ), debug=True ) ) ),
 					 **kwargs )
 TestApp.__test__ = False # make nose not call this
