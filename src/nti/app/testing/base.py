@@ -121,7 +121,27 @@ class _TestBaseMixin(object):
 
 
 TestBaseMixin = _TestBaseMixin
-class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
+
+class _PWManagerMixin(object):
+	_old_pw_manager = None
+
+	def setUpPasswords(self):
+		from nti.dataserver.users import Principal
+		# By switching from the very secure and very expensive
+		# bcrypt default, we speed application-level tests
+		# up (due to faster principal creation and faster password authentication)
+		# The forum tests go from 55s to 15s
+		# This is a nose1 feature and will have to be moved for nose2,
+		# probably to layers (which is a good thing in general)
+		self._old_pw_manager = Principal.password_manager_name
+		Principal.password_manager_name = 'Plain Text'
+
+	def tearDownPasswords(self):
+		if self._old_pw_manager:
+			from nti.dataserver.users import Principal
+			Principal.password_manager_name = self._old_pw_manager
+
+class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase,_PWManagerMixin):
 	"""
 	Attributes:
 	self.config A pyramid configurator. Note that it does not have a
@@ -136,6 +156,7 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 		"""
 		:return: The `Configurator`, which is also in ``self.config``.
 		"""
+		self.setUpPasswords()
 
 		super(ConfiguringTestBase,self).setUp()
 
@@ -166,6 +187,7 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase):
 
 	def tearDown( self ):
 		ptearDown()
+		self.tearDownPasswords()
 		super(ConfiguringTestBase,self).tearDown()
 
 class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
@@ -176,6 +198,8 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	security_policy = None
 
+	_pwman = None
+
 	@classmethod
 	def setUpClass( cls,
 					request_factory=DummyRequest,
@@ -185,6 +209,8 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 		"""
 		:return: The `Configurator`, which is also in ``self.config``.
 		"""
+		cls._pwman = _PWManagerMixin()
+		cls._pwman.setUpPasswords()
 
 		super(SharedConfiguringTestBase,cls).setUpClass()
 
@@ -215,6 +241,8 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 		ptearDown()
 		cls._mailer = None
 		cls.security_policy = None
+		cls._pwman.tearDownPasswords()
+		cls._pwman = None
 		super(SharedConfiguringTestBase,cls).tearDownClass()
 
 	def setUp( self ):
