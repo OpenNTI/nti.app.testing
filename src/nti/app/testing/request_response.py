@@ -18,6 +18,7 @@ from hamcrest import is_
 from nti.testing.matchers import TypeCheckedDict
 
 from pyramid.testing import DummyRequest as _DummyRequest
+from webob import BaseRequest as _BaseRequest
 from pyramid.response import Response as _Response
 from pyramid.decorator import reify
 class _HeaderList( list ):
@@ -80,3 +81,8 @@ class DummyRequest(ByteHeadersDummyRequest):
 		from nti.appserver.tweens.zope_site_tween import _get_possible_site_names
 		site_names = _get_possible_site_names( self )
 		self.possible_site_names = tuple(site_names)
+
+	@classmethod
+	def blank(cls, *args, **kwargs):
+		# Pyramid's testing request doesn't have this for some reason
+		return _BaseRequest.blank( *args, **kwargs )
