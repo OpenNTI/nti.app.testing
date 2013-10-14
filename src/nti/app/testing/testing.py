@@ -1,4 +1,6 @@
 
+from __future__ import absolute_import
+
 from hamcrest import assert_that
 from hamcrest import is_
 from hamcrest import is_not
