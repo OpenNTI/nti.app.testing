@@ -27,7 +27,7 @@ from .base import SharedConfiguringTestBase
 from urllib import quote as UQ
 
 from nti.dataserver import users
-from nti.dataserver import ntiids
+from nti.ntiids import ntiids
 from nti.dataserver import interfaces as nti_interfaces
 from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
 
@@ -95,7 +95,7 @@ class _AppTestBaseMixin(object):
 			comm = users.Community.get_community( self.default_community, self.ds )
 			if not comm:
 				comm = users.Community.create_community( self.ds, username=self.default_community )
-			user.join_community( comm )
+			user.record_dynamic_membership( comm )
 
 		return user
 
