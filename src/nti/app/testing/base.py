@@ -261,3 +261,10 @@ class NewRequestSharedConfiguringTestBase(SharedConfiguringTestBase):
 		result = super(NewRequestSharedConfiguringTestBase,self).setUp()
 		self.beginRequest()
 		return result
+
+import zope.deferredimport
+zope.deferredimport.initialize()
+zope.deferredimport.deprecatedFrom(
+	"Moved to application_webtest",
+	"nti.app.testing.application_webtest",
+	"SharedApplicationTestBase" )
