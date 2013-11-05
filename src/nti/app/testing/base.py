@@ -31,6 +31,7 @@ from hamcrest import assert_that
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
+from hamcrest import described_as
 
 from nti.contentsearch import interfaces as search_interfaces
 import nti.contentsearch
@@ -111,7 +112,7 @@ class _TestBaseMixin(object):
 	def require_link_href_with_rel( self, ext_obj, rel ):
 		link = self.link_href_with_rel( ext_obj, rel )
 		__traceback_info__ = ext_obj
-		assert_that( link, is_not( none() ), rel )
+		assert_that( link, described_as( "A link with rel %0", is_not( none() ), rel ) )
 		return link
 
 	def forbid_link_with_rel( self, ext_obj, rel ):
