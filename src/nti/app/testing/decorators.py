@@ -77,20 +77,23 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 		kwargs['with_changes'] = True # make sure the DS gets it
 
 	if len(args) == 1 and not kwargs:
+		kwargs = {'base_storage': lambda self: self._storage_base}
 		# being used as a decorator
 		func = args[0]
 
 		@functools.wraps(func)
-		@mock_dataserver.WithMockDS
+		@mock_dataserver.WithMockDS(**kwargs)
 		def f(self):
 			self.config.registry._zodb_databases = { '': self.ds.db } # 0.3
 			self.ds.redis.flushall()
 			_do_create( self )
 			_make_app( self )
 			func(self)
+
 		return f
 
 	# Being used as a decorator factory
+	kwargs['base_storage'] = lambda self: self._storage_base
 	def factory(func):
 		@functools.wraps(func)
 		@mock_dataserver.WithMockDS(**kwargs)

@@ -202,6 +202,12 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	_pwman = None
 
+	#: A demo storage will be created on top of this
+	#: storage. This can be used to create objects at
+	#: class or module set up time and have them available
+	#: to dataservers created at test method set up time.
+	_storage_base = None
+
 	@classmethod
 	def setUpClass( cls,
 					request_factory=DummyRequest,
