@@ -23,6 +23,8 @@ from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTest
 from pyramid.testing import setUp as psetUp
 from pyramid.testing import tearDown as ptearDown
 
+import ZODB.DemoStorage
+
 from .testing import ITestMailDelivery
 from .testing import TestMailDelivery
 
@@ -220,6 +222,10 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 		cls._pwman = _PWManagerMixin()
 		cls._pwman.setUpPasswords()
 
+		# The demo storage has less strict requirements about
+		# being open/closed than a plain mapping storage
+		cls._storage_base = ZODB.DemoStorage.DemoStorage()
+
 		super(SharedConfiguringTestBase,cls).setUpClass()
 
 		cls.config = psetUp(registry=component.getGlobalSiteManager(),request=cls.request,hook_zca=False)
@@ -261,6 +267,7 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	def tearDown( self ):
 		super(SharedConfiguringTestBase,self).tearDown()
+
 
 class NewRequestSharedConfiguringTestBase(SharedConfiguringTestBase):
 

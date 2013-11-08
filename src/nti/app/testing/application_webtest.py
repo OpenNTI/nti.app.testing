@@ -172,18 +172,30 @@ class SharedApplicationTestBase(_AppTestBaseMixin,SharedConfiguringTestBase):
 	@classmethod
 	def setUpClass(cls, *args, **kwargs):
 		__traceback_info__ = cls
-		#self.ds = mock_dataserver.MockDataserver()
 		super(SharedApplicationTestBase,cls).setUpClass(*args, **kwargs)
+		# During initial application setup, we need to have an open
+		# database/dataserver in case any global setup needs to be
+		# done. It needs to use our base storage so that these things
+		# will be visible to future DBs.
+		# But we can't open it until the configuration is done
+		# so that zope.generations kicks in and installs things
+		# (in zope.app.appsetup, this is handled by the bootstrap subscribers;
+		# but still, configuration must be done)
+		_ds = []
+		def create_ds():
+			_ds.append( mock_dataserver.MockDataserver(base_storage=cls._storage_base) )
+			return _ds[0]
+
 		cls.app = createApplication( 8080,
 									 cls._setup_library(),
-									 create_ds=False,
+									 create_ds=create_ds,
 									 force_create_indexmanager=True,
 									 pyramid_config=cls.config,
 									 devmode=cls.APP_IN_DEVMODE,
 									 testmode=True,
 									 zcml_features=cls.features,
 									 **cls._extra_app_settings())
-
+		_ds[0].close()
 		component.provideHandler( eventtesting.events.append, (None,) )
 
 	def setUp(self):
