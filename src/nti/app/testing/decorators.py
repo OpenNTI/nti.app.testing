@@ -38,6 +38,9 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 	"""
 
 	users_to_create = kwargs.pop( 'users', None )
+	if isinstance(users_to_create,basestring):
+		# They forgot the comma to make a tuple
+		users_to_create = (users_to_create,)
 	default_authenticate = kwargs.pop( 'default_authenticate', None )
 	testapp = kwargs.pop( 'testapp', None )
 	handle_changes = kwargs.pop( 'handle_changes', False )
