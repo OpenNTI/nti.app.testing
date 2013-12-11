@@ -51,6 +51,8 @@ class _AppTestBaseMixin(object):
 	#: created with :meth:`_create_user` should be added to.
 	default_community = None
 
+	testapp = None
+
 	def _make_extra_environ(self, user=None, update_request=False, **kwargs):
 		"""
 		The default username is a case-modified version of the default user in :meth:`_create_user`,
