@@ -84,6 +84,7 @@ class _TestBaseMixin(object):
 	def beginRequest( self, request_factory=DummyRequest, request_args=() ):
 		_create_request( self, request_factory, request_args )
 		self.config.begin( request=self.request )
+		return self.request
 
 	def get_ds(self):
 		"Convenience for when you have imported mock_dataserver and used @WithMockDS/Trans"
