@@ -17,9 +17,6 @@ logger = __import__('logging').getLogger(__name__)
 #disable: accessing protected members, too many methods
 #pylint: disable=W0212,R0904
 
-from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
-from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
-
 from pyramid.testing import setUp as psetUp
 from pyramid.testing import tearDown as ptearDown
 
@@ -28,33 +25,11 @@ import ZODB.DemoStorage
 from .testing import ITestMailDelivery
 from .testing import TestMailDelivery
 
-from nose.tools import assert_raises
-from hamcrest import assert_that
-from hamcrest import is_
-from hamcrest import none
-from hamcrest import is_not
-from hamcrest import described_as
-
-from nti.contentsearch import interfaces as search_interfaces
-import nti.contentsearch
 
 import pyramid.config
 
 
-from webtest import TestApp as _TestApp
-
 from nti.app.pyramid_zope import z3c_zpt
-
-
-
-from nti.dataserver import users
-from nti.ntiids import ntiids
-from nti.dataserver import interfaces as nti_interfaces
-
-from nti.dataserver.tests import mock_dataserver
-
-
-from urllib import quote as UQ
 
 from zope import interface
 from zope import component
@@ -63,20 +38,13 @@ from .base import _PWManagerMixin
 from .base import DummyRequest
 
 
-import zope.deferredimport
-zope.deferredimport.initialize()
-zope.deferredimport.deprecatedFrom(
-	"Moved to application_webtest",
-	"nti.app.testing.application_webtest",
-	"SharedApplicationTestBase" )
-
-
 from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 from nti.testing.layers import find_test
 
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
+import zope.testing.cleanup
 
 class PyramidLayerMixin(GCLayerMixin):
 
@@ -86,7 +54,7 @@ class PyramidLayerMixin(GCLayerMixin):
 	security_policy = None
 
 	_pwman = None
-	set_up_packages = ('nti.appserver',)
+
 
 	#: A demo storage will be created on top of this
 	#: storage. This can be used to create objects at
@@ -162,7 +130,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 								 GCLayerMixin,
 								 ConfiguringLayerMixin,
 								 DSInjectorMixin):
-
+	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
 		cls.setUpPyramid()
@@ -199,6 +167,11 @@ class NewRequestSharedConfiguringTestLayer(SharedConfiguringTestLayer):
 		cls.testSetUpPyramid(test)
 		test.beginRequest()
 
+from .base import TestBaseMixin
+import unittest
+class NewRequestLayerTest(TestBaseMixin,unittest.TestCase):
+	layer = NewRequestSharedConfiguringTestLayer
+
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 										   PyramidLayerMixin,
 										   GCLayerMixin,
@@ -206,7 +179,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 										   DSInjectorMixin):
 
 	features = ()
-
+	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
 		cls.setUpPyramid()

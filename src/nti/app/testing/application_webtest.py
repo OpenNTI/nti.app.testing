@@ -165,6 +165,54 @@ class _AppTestBaseMixin(object):
 
 AppTestBaseMixin = _AppTestBaseMixin
 
+def _create_app(cls, *args, **kwargs):
+
+	# During initial application setup, we need to have an open
+	# database/dataserver in case any global setup needs to be
+	# done. Whatever changes it makes we need to capture and use
+	# as our base storage so that future tests can see them.
+
+	# But we can't open it until the configuration is done
+	# so that zope.generations kicks in and installs things
+	# (in zope.app.appsetup, this is handled by the bootstrap subscribers;
+	# but still, configuration must be done)
+	_ds = []
+	def create_ds():
+		_ds.append( mock_dataserver.MockDataserver(base_storage=None) )
+		return _ds[0]
+
+	cls.app = createApplication( 8080,
+								 cls._setup_library(),
+								 create_ds=create_ds,
+								 force_create_indexmanager=True,
+								 pyramid_config=cls.config,
+								 devmode=cls.APP_IN_DEVMODE,
+								 testmode=True,
+								 zcml_features=cls.features,
+								 **cls._extra_app_settings())
+	cls._storage_base = _ds[0].db.storage
+	_ds[0].close() # closing closes the storage and deletes the attribute
+
+def _test_set_up(self):
+	#test_func = getattr( self, self._testMethodName )
+	#ds_factory = getattr( test_func, 'mock_ds_factory', mock_dataserver.MockDataserver )
+	#self.ds = ds_factory()
+	#component.provideUtility( self.ds, nti_interfaces.IDataserver )
+
+	# If we try to externalize things outside of an active request, but
+	# the get_current_request method returns the mock request we just set up,
+	# then if the environ doesn't have these things in it we can get an AssertionError
+	# from paste.httpheaders n behalf of repoze.who's request classifier
+	self.beginRequest()
+	self.request.environ[b'HTTP_USER_AGENT'] = b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.6 (KHTML, like Gecko) Chrome/23.0.1239.0 Safari/537.6'
+	self.request.environ[b'wsgi.version'] = '1.0'
+
+	self.users = {}
+	self.testapp = None
+
+def _test_tear_down(self):
+	self.users = {}
+	self.testapp = None
 
 class SharedApplicationTestBase(_AppTestBaseMixin,SharedConfiguringTestBase):
 	features = ()
@@ -184,62 +232,124 @@ class SharedApplicationTestBase(_AppTestBaseMixin,SharedConfiguringTestBase):
 	def setUpClass(cls, *args, **kwargs):
 		__traceback_info__ = cls
 		super(SharedApplicationTestBase,cls).setUpClass(*args, **kwargs)
-		# During initial application setup, we need to have an open
-		# database/dataserver in case any global setup needs to be
-		# done. Whatever changes it makes we need to capture and use
-		# as our base storage so that future tests can see them.
-
-		# But we can't open it until the configuration is done
-		# so that zope.generations kicks in and installs things
-		# (in zope.app.appsetup, this is handled by the bootstrap subscribers;
-		# but still, configuration must be done)
-		_ds = []
-		def create_ds():
-			_ds.append( mock_dataserver.MockDataserver(base_storage=None) )
-			return _ds[0]
-
-		cls.app = createApplication( 8080,
-									 cls._setup_library(),
-									 create_ds=create_ds,
-									 force_create_indexmanager=True,
-									 pyramid_config=cls.config,
-									 devmode=cls.APP_IN_DEVMODE,
-									 testmode=True,
-									 zcml_features=cls.features,
-									 **cls._extra_app_settings())
-		cls._storage_base = _ds[0].db.storage
-		_ds[0].close() # closing closes the storage and deletes the attribute
+		_create_app(cls, *args, **kwargs)
 		component.provideHandler( eventtesting.events.append, (None,) )
 
 	def setUp(self):
 		super(SharedApplicationTestBase,self).setUp()
-
-		test_func = getattr( self, self._testMethodName )
-		#ds_factory = getattr( test_func, 'mock_ds_factory', mock_dataserver.MockDataserver )
-		#self.ds = ds_factory()
-		#component.provideUtility( self.ds, nti_interfaces.IDataserver )
-
-		# If we try to externalize things outside of an active request, but
-		# the get_current_request method returns the mock request we just set up,
-		# then if the environ doesn't have these things in it we can get an AssertionError
-		# from paste.httpheaders n behalf of repoze.who's request classifier
-		self.beginRequest()
-		self.request.environ[b'HTTP_USER_AGENT'] = b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.6 (KHTML, like Gecko) Chrome/23.0.1239.0 Safari/537.6'
-		self.request.environ[b'wsgi.version'] = '1.0'
-
-		self.users = {}
-		self.testapp = None
-
+		_test_set_up(self)
 
 	def tearDown(self):
-		self.users = {}
-		self.testapp = None
+		_test_tear_down(self)
 		super(SharedApplicationTestBase,self).tearDown()
 
 	@classmethod
 	def tearDownClass(cls):
 		super(SharedApplicationTestBase,cls).tearDownClass()
 
+
+from nti.testing.layers import GCLayerMixin
+from nti.testing.layers import ZopeComponentLayer
+from nti.testing.layers import ConfiguringLayerMixin
+from nti.testing.layers import find_test
+from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
+from .layers import PyramidLayerMixin
+
+class ApplicationTestLayer(ZopeComponentLayer,
+						   PyramidLayerMixin,
+						   GCLayerMixin,
+						   ConfiguringLayerMixin,
+						   DSInjectorMixin):
+	features = ('forums',)
+	set_up_packages = () # None, because configuring the app will do this
+	APP_IN_DEVMODE = True
+	configure_events = False # We have no packages, but we will set up the listeners ourself when configuring the app
+
+	@classmethod
+	def _setup_library(cls, *args, **kwargs):
+		return Library()
+
+	@classmethod
+	def _extra_app_settings(cls):
+		return {}
+
+	@classmethod
+	def setUp(cls):
+		cls.setUpPyramid()
+		cls.setUpPackages()
+		_create_app(cls)
+
+	@classmethod
+	def tearDown(cls):
+		cls.tearDownPackages()
+		cls.tearDownPyramid()
+
+	@classmethod
+	def testSetUp(cls, test=None):
+		test = test or find_test()
+		cls.setUpTestDS(test)
+		cls.testSetUpPyramid(test)
+		test._storage_base = cls._storage_base
+		test.app = cls.app
+		_test_set_up(test)
+
+	@classmethod
+	def testTearDown(cls, test=None):
+		test = test or find_test()
+		_test_tear_down(test)
+
+class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
+									 PyramidLayerMixin,
+									 GCLayerMixin,
+									 ConfiguringLayerMixin,
+									 DSInjectorMixin):
+	features = ()
+	set_up_packages = () # None, because configuring the app will do this
+	APP_IN_DEVMODE = False
+	configure_events = False # We have no packages, but we will set up the listeners ourself when configuring the app
+
+	@classmethod
+	def _setup_library(cls, *args, **kwargs):
+		return Library()
+
+	@classmethod
+	def _extra_app_settings(cls):
+		return {}
+
+	@classmethod
+	def setUp(cls):
+		cls.setUpPyramid()
+		cls.setUpPackages()
+		_create_app(cls)
+
+	@classmethod
+	def tearDown(cls):
+		cls.tearDownPackages()
+		cls.tearDownPyramid()
+
+	@classmethod
+	def testSetUp(cls, test=None):
+		test = test or find_test()
+		cls.setUpTestDS(test)
+		cls.testSetUpPyramid(test)
+		test._storage_base = cls._storage_base
+		test.app = cls.app
+		_test_set_up(test)
+
+	@classmethod
+	def testTearDown(cls, test=None):
+		test = test or find_test()
+		_test_tear_down(test)
+
+
+from .base import TestBaseMixin
+import unittest
+
+class ApplicationLayerTest(AppTestBaseMixin, TestBaseMixin, unittest.TestCase):
+	layer = ApplicationTestLayer
+
+class NonDevmodeApplicationLayerTest(AppTestBaseMixin, TestBaseMixin, unittest.TestCase):
+	layer = NonDevmodeApplicationTestLayer
 
 
 class ApplicationTestBase(_AppTestBaseMixin, ConfiguringTestBase):

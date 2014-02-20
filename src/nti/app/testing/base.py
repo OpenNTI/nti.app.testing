@@ -132,6 +132,13 @@ class _TestBaseMixin(object):
 		__traceback_info__ = ext_obj, link, rel
 		assert_that( link, is_( none() ), rel )
 
+	def provide_security_policy_from_factory(self, security_policy_factory=None, force_security_policy=True):
+		if security_policy_factory:
+			self.security_policy = security_policy_factory()
+			for iface in pyramid.interfaces.IAuthenticationPolicy, pyramid.interfaces.IAuthorizationPolicy:
+				if iface.providedBy( self.security_policy ) or force_security_policy:
+					component.provideUtility( self.security_policy, iface )
+			return self.security_policy
 
 TestBaseMixin = _TestBaseMixin
 
