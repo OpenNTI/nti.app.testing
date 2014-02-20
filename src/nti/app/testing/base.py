@@ -60,6 +60,15 @@ from zope import interface
 from zope import component
 from zope.deprecation import __show__
 
+
+import zope.deferredimport
+zope.deferredimport.initialize()
+zope.deferredimport.deprecatedFrom(
+	"Moved to application_webtest",
+	"nti.app.testing.application_webtest",
+	"SharedApplicationTestBase" )
+
+
 from .matchers import has_permission, doesnt_have_permission
 from .request_response import DummyRequest
 
@@ -211,6 +220,7 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 	#: to dataservers created at test method set up time.
 	_storage_base = None
 
+
 	@classmethod
 	def setUpClass( cls,
 					request_factory=DummyRequest,
@@ -276,10 +286,3 @@ class NewRequestSharedConfiguringTestBase(SharedConfiguringTestBase):
 		result = super(NewRequestSharedConfiguringTestBase,self).setUp()
 		self.beginRequest()
 		return result
-
-import zope.deferredimport
-zope.deferredimport.initialize()
-zope.deferredimport.deprecatedFrom(
-	"Moved to application_webtest",
-	"nti.app.testing.application_webtest",
-	"SharedApplicationTestBase" )
