@@ -164,9 +164,18 @@ class _AppTestBaseMixin(object):
 		return testapp.get( '/dataserver2/NTIIDs/' + ntiid, **kwargs )
 
 AppTestBaseMixin = _AppTestBaseMixin
-
+import gc
 def _create_app(cls, *args, **kwargs):
+	# We do some very fragile things to make us work
+	# correctly if *part* of the application has been
+	# set up but not torn down...some things live outside
+	# the ZCA registry but are nevertheless set up by the
+	# ZCA registry...typically zope.testing.cleanup would get
+	# these, but it's probably not run if we're in a layer
+	import zope.browserpage.metaconfigure
+	zope.browserpage.metaconfigure.clear()
 
+	gc.collect()
 	# During initial application setup, we need to have an open
 	# database/dataserver in case any global setup needs to be
 	# done. Whatever changes it makes we need to capture and use
@@ -192,6 +201,7 @@ def _create_app(cls, *args, **kwargs):
 								 **cls._extra_app_settings())
 	cls._storage_base = _ds[0].db.storage
 	_ds[0].close() # closing closes the storage and deletes the attribute
+	cls.current_mock_ds = _ds[0]
 
 def _test_set_up(self):
 	#test_func = getattr( self, self._testMethodName )
