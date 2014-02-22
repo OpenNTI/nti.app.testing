@@ -125,11 +125,11 @@ class PyramidLayerMixin(GCLayerMixin):
 	def testTearDown( cls ):
 		pass
 
-class SharedConfiguringTestLayer(ZopeComponentLayer,
-								 PyramidLayerMixin,
-								 GCLayerMixin,
-								 ConfiguringLayerMixin,
-								 DSInjectorMixin):
+class AppTestLayer(ZopeComponentLayer,
+				   PyramidLayerMixin,
+				   GCLayerMixin,
+				   ConfiguringLayerMixin,
+				   DSInjectorMixin):
 	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
@@ -140,6 +140,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 	def tearDown(cls):
 		cls.tearDownPackages()
 		cls.tearDownPyramid()
+		zope.testing.cleanup.cleanUp()
 
 	@classmethod
 	def testSetUp(cls, test=None):
@@ -147,7 +148,7 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 		cls.testSetUpPyramid(test)
 
 
-class NewRequestSharedConfiguringTestLayer(SharedConfiguringTestLayer):
+class NewRequestAppTestLayer(AppTestLayer):
 
 	@classmethod
 	def setUp(cls):
@@ -159,7 +160,7 @@ class NewRequestSharedConfiguringTestLayer(SharedConfiguringTestLayer):
 	def tearDown(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
-		pass
+		zope.testing.cleanup.cleanUp()
 
 	@classmethod
 	def testSetUp( cls, test=None ):
@@ -167,10 +168,13 @@ class NewRequestSharedConfiguringTestLayer(SharedConfiguringTestLayer):
 		cls.testSetUpPyramid(test)
 		test.beginRequest()
 
+SharedConfiguringTestLayer = AppTestLayer
+NewRequestSharedConfiguringTestLayer = NewRequestAppTestLayer
+
 from .base import TestBaseMixin
 import unittest
 class NewRequestLayerTest(TestBaseMixin,unittest.TestCase):
-	layer = NewRequestSharedConfiguringTestLayer
+	layer = NewRequestAppTestLayer
 
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 										   PyramidLayerMixin,
@@ -189,6 +193,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 	def tearDown(cls):
 		cls.tearDownPackages()
 		cls.tearDownPyramid()
+		zope.testing.cleanup.cleanUp()
 
 	@classmethod
 	def testSetUp(cls, test=None):
@@ -208,7 +213,7 @@ class NonDevmodeNewRequestSharedConfiguringTestLayer(NonDevmodeSharedConfiguring
 	def tearDown(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
-		pass
+		zope.testing.cleanup.cleanUp()
 
 	@classmethod
 	def testSetUp( cls, test=None ):
