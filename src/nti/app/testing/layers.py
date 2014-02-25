@@ -173,6 +173,10 @@ NewRequestSharedConfiguringTestLayer = NewRequestAppTestLayer
 
 from .base import TestBaseMixin
 import unittest
+
+class AppLayerTest(TestBaseMixin,unittest.TestCase):
+	layer = AppTestLayer
+
 class NewRequestLayerTest(TestBaseMixin,unittest.TestCase):
 	layer = NewRequestAppTestLayer
 
