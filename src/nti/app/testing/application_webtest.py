@@ -265,11 +265,48 @@ from nti.testing.layers import find_test
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 from .layers import PyramidLayerMixin
 
+
+class AppCreatingLayerHelper(object):
+
+	@classmethod
+	def _setup_library(cls, *args, **kwargs):
+		return Library()
+
+	@classmethod
+	def _extra_app_settings(cls):
+		return {}
+
+	@classmethod
+	def appSetUp(cls, layer):
+		layer.setUpPyramid()
+		layer.setUpPackages()
+		_create_app(layer)
+
+	@classmethod
+	def appTearDown(cls, layer):
+		layer.tearDownPackages()
+		layer.tearDownPyramid()
+
+	@classmethod
+	def appTestSetUp(cls, layer, test=None):
+		test = test or find_test()
+		layer.setUpTestDS(test)
+		layer.testSetUpPyramid(test)
+		test._storage_base = layer._storage_base
+		test.app = layer.app
+		_test_set_up(test)
+
+	@classmethod
+	def appTestTearDown(cls, layer, test=None):
+		test = test or find_test()
+		_test_tear_down(test)
+
 class ApplicationTestLayer(ZopeComponentLayer,
 						   PyramidLayerMixin,
 						   GCLayerMixin,
 						   ConfiguringLayerMixin,
-						   DSInjectorMixin):
+						   DSInjectorMixin,
+						   ):
 	features = ('forums',)
 	set_up_packages = () # None, because configuring the app will do this
 	APP_IN_DEVMODE = True
@@ -285,28 +322,20 @@ class ApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
-		cls.setUpPyramid()
-		cls.setUpPackages()
-		_create_app(cls)
+		AppCreatingLayerHelper.appSetUp(cls)
 
 	@classmethod
 	def tearDown(cls):
-		cls.tearDownPackages()
-		cls.tearDownPyramid()
+		AppCreatingLayerHelper.appTearDown(cls)
 
 	@classmethod
 	def testSetUp(cls, test=None):
-		test = test or find_test()
-		cls.setUpTestDS(test)
-		cls.testSetUpPyramid(test)
-		test._storage_base = cls._storage_base
-		test.app = cls.app
-		_test_set_up(test)
+		AppCreatingLayerHelper.appTestSetUp(cls, test)
 
 	@classmethod
 	def testTearDown(cls, test=None):
-		test = test or find_test()
-		_test_tear_down(test)
+		AppCreatingLayerHelper.appTestTearDown(cls, test)
+
 
 class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 									 PyramidLayerMixin,
@@ -328,28 +357,19 @@ class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
-		cls.setUpPyramid()
-		cls.setUpPackages()
-		_create_app(cls)
+		AppCreatingLayerHelper.appSetUp(cls)
 
 	@classmethod
 	def tearDown(cls):
-		cls.tearDownPackages()
-		cls.tearDownPyramid()
+		AppCreatingLayerHelper.appTearDown(cls)
 
 	@classmethod
 	def testSetUp(cls, test=None):
-		test = test or find_test()
-		cls.setUpTestDS(test)
-		cls.testSetUpPyramid(test)
-		test._storage_base = cls._storage_base
-		test.app = cls.app
-		_test_set_up(test)
+		AppCreatingLayerHelper.appTestSetUp(cls, test)
 
 	@classmethod
 	def testTearDown(cls, test=None):
-		test = test or find_test()
-		_test_tear_down(test)
+		AppCreatingLayerHelper.appTestTearDown(cls, test)
 
 
 from .base import TestBaseMixin

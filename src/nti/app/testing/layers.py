@@ -120,9 +120,22 @@ class PyramidLayerMixin(GCLayerMixin):
 		if cls._mailer:
 			del cls._mailer.queue[:]
 
+	@classmethod
+	def setUp(cls):
+		pass
 
 	@classmethod
-	def testTearDown( cls ):
+	def tearDown(cls):
+		pass
+
+	@classmethod
+	def testSetUp( cls ):
+		pass
+
+
+	@classmethod
+	def testTearDown(cls):
+		# Must implement
 		pass
 
 class AppTestLayer(ZopeComponentLayer,
@@ -147,6 +160,10 @@ class AppTestLayer(ZopeComponentLayer,
 		cls.setUpTestDS(test)
 		cls.testSetUpPyramid(test)
 
+	@classmethod
+	def testTearDown(cls):
+		# Must implement
+		pass
 
 class NewRequestAppTestLayer(AppTestLayer):
 
@@ -167,6 +184,11 @@ class NewRequestAppTestLayer(AppTestLayer):
 		test = test or find_test()
 		cls.testSetUpPyramid(test)
 		test.beginRequest()
+
+	@classmethod
+	def testTearDown(cls):
+		# Must implement
+		pass
 
 SharedConfiguringTestLayer = AppTestLayer
 NewRequestSharedConfiguringTestLayer = NewRequestAppTestLayer
