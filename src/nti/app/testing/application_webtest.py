@@ -101,6 +101,11 @@ class _AppTestBaseMixin(object):
 
 		return user
 
+	def _get_user(self, username=None):
+		if username is None:
+			username = self.extra_environ_default_user.lower()
+		return users.User.get_user(username, self.ds)
+
 	def _fetch_user_url( self, path, testapp=None, username=None, **kwargs ):
 		if testapp is None:
 			testapp = self.testapp
