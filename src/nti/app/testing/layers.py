@@ -246,3 +246,10 @@ class NonDevmodeNewRequestSharedConfiguringTestLayer(NonDevmodeSharedConfiguring
 		test = test or find_test()
 		cls.testSetUpPyramid(test)
 		test.beginRequest()
+
+	@classmethod
+	def testTearDown(cls):
+		pass
+
+class NonDevmodeNewRequestLayerTest(TestBaseMixin,unittest.TestCase):
+	layer = NonDevmodeNewRequestSharedConfiguringTestLayer
