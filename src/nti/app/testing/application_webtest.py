@@ -147,19 +147,31 @@ class _AppTestBaseMixin(object):
 
 	def fetch_user_ugd( self, containerId, testapp=None, username=None, **kwargs ):
 		"Using the given or default app, fetch the UserGeneratedData for the given or default user"
-		return self._fetch_user_url( '/Pages(' + containerId + ')/UserGeneratedData', testapp=testapp, username=username, **kwargs )
+		return self._fetch_user_url( '/Pages(' + containerId + ')/UserGeneratedData',
+									 testapp=testapp,
+									 username=username,
+									 **kwargs )
 
 	def fetch_user_root_rugd( self, testapp=None, username=None, **kwargs ):
 		"Using the given or default app, fetch the RecursiveUserGeneratedData for the given or default user"
-		return self._fetch_user_url( '/Pages(' + ntiids.ROOT + ')/RecursiveUserGeneratedData', testapp=testapp, username=username, **kwargs )
+		return self._fetch_user_url( '/Pages(' + ntiids.ROOT + ')/RecursiveUserGeneratedData',
+									 testapp=testapp,
+									 username=username,
+									 **kwargs )
 
 	def fetch_user_root_rstream( self, testapp=None, username=None, **kwargs ):
 		"Using the given or default app, fetch the RecursiveStream for the given or default user"
-		return self._fetch_user_url( '/Pages(' + ntiids.ROOT + ')/RecursiveStream', testapp=testapp, username=username, **kwargs )
+		return self._fetch_user_url( '/Pages(' + ntiids.ROOT + ')/RecursiveStream',
+									 testapp=testapp,
+									 username=username,
+									 **kwargs )
 
 	def search_user_rugd( self, term, testapp=None, username=None, **kwargs ):
 		"""Search the user for the given term and return the results"""
-		return self._fetch_user_url( '/Search/RecursiveUserGeneratedData/' + term, testapp=testapp, username=username, **kwargs )
+		return self._fetch_user_url( '/Search/RecursiveUserGeneratedData/' + term,
+									 testapp=testapp,
+									 username=username,
+									 **kwargs )
 
 	def fetch_by_ntiid( self, ntiid, testapp=None, **kwargs ):
 		"Using the given or default app, fetch the object with the given ntiid"
@@ -167,6 +179,14 @@ class _AppTestBaseMixin(object):
 			testapp = self.testapp
 
 		return testapp.get( '/dataserver2/NTIIDs/' + ntiid, **kwargs )
+
+
+	def fetch_user_recursive_notable_ugd(self, testapp=None, username=None, **kwargs ):
+		return self._fetch_user_url( '/Pages(' + ntiids.ROOT + ')/RUGDByOthersThatIMightBeInterestedIn',
+									 testapp=testapp,
+									 username=username,
+									 **kwargs )
+
 
 AppTestBaseMixin = _AppTestBaseMixin
 import gc
