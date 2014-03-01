@@ -57,6 +57,20 @@ class _UnicodeTestApp(_TestApp):
 
 _TestApp = _UnicodeTestApp
 
+class _PasteTestingMiddleware(object):
+	"""
+	Ensure we are in paste.testing mode, which isn't
+	guaranteed if the user manually set all the incoming
+	headers.
+	"""
+
+	def __init__(self, app):
+		self.app = app
+
+	def __call__(self, environ, start_response):
+		environ[b'paste.testing'] = True
+		return self.app(environ, start_response)
+
 def TestApp(app, **kwargs):
 	"""Sets up the pipeline just like in real life.
 
@@ -67,7 +81,8 @@ def TestApp(app, **kwargs):
 			CORSInjector(
 				CORSOptionHandler(
 					ErrorMiddleware(
-						_ZODBGCMiddleware( app ),
+						_ZODBGCMiddleware(
+							_PasteTestingMiddleware( app ) ),
 						debug=True ) ) ),
 			**kwargs )
 TestApp.__test__ = False # make nose not call this

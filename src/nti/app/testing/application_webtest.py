@@ -72,6 +72,7 @@ class _AppTestBaseMixin(object):
 			b'HTTP_ORIGIN': self.default_origin, # To trigger CORS
 			b'HTTP_USER_AGENT': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.6 (KHTML, like Gecko) Chrome/23.0.1239.0 Safari/537.6',
 			b'paste.throw_errors': True, # Cause paste to throw everything in case it gets in the pipeline
+			b'paste.testing': True, # Let lower layers know we're testing
 			}
 		for k, v in kwargs.items():
 			k = str(k)
