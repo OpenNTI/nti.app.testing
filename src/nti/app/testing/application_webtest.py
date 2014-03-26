@@ -23,6 +23,7 @@ from zope import component
 
 from .base import ConfiguringTestBase
 from .base import SharedConfiguringTestBase
+from .base import TestBaseMixin
 
 from urllib import quote as UQ
 
@@ -34,22 +35,19 @@ from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
 from nti.appserver.application import createApplication # TODO: Break this dep
 
 from nti.dataserver.tests import mock_dataserver
+from nti.utils.property import alias
 
-
-class _AppTestBaseMixin(object):
+class _AppTestBaseMixin(TestBaseMixin):
 	"""
 	A mixin that exposes knowledge about how
 	URLs are structured and includes some convenience functions
 	for working with common URLs.
 	"""
 
-	default_user_extra_interfaces = ()
-	extra_environ_default_user = b'sjohnson@nextthought.COM'
 	default_origin = b'http://localhost'
 
-	#: Set this to the username or NTIID of a community that users
-	#: created with :meth:`_create_user` should be added to.
-	default_community = None
+	extra_environ_default_user = alias('default_username')
+
 
 	testapp = None
 
@@ -83,29 +81,6 @@ class _AppTestBaseMixin(object):
 			self.request.environ.update( result )
 
 		return result
-
-	def _create_user(self, username=None, password='temp001', **kwargs):
-		if username is None:
-			username = self.extra_environ_default_user.lower()
-			ifaces = self.default_user_extra_interfaces
-		else:
-			ifaces = kwargs.pop( 'extra_interfaces', () )
-
-		user = users.User.create_user( self.ds, username=username, password=password, **kwargs)
-		interface.alsoProvides( user, ifaces )
-
-		if self.default_community:
-			comm = users.Community.get_community( self.default_community, self.ds )
-			if not comm:
-				comm = users.Community.create_community( self.ds, username=self.default_community )
-			user.record_dynamic_membership( comm )
-
-		return user
-
-	def _get_user(self, username=None):
-		if username is None:
-			username = self.extra_environ_default_user.lower()
-		return users.User.get_user(username, self.ds)
 
 	def _fetch_user_url( self, path, testapp=None, username=None, **kwargs ):
 		if testapp is None:
@@ -398,13 +373,12 @@ class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 		AppCreatingLayerHelper.appTestTearDown(cls, test)
 
 
-from .base import TestBaseMixin
 import unittest
 
-class ApplicationLayerTest(AppTestBaseMixin, TestBaseMixin, unittest.TestCase):
+class ApplicationLayerTest(AppTestBaseMixin, unittest.TestCase):
 	layer = ApplicationTestLayer
 
-class NonDevmodeApplicationLayerTest(AppTestBaseMixin, TestBaseMixin, unittest.TestCase):
+class NonDevmodeApplicationLayerTest(AppTestBaseMixin, unittest.TestCase):
 	layer = NonDevmodeApplicationTestLayer
 
 

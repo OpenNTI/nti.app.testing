@@ -15,7 +15,7 @@ __test__ = False
 logger = __import__('logging').getLogger(__name__)
 
 #disable: accessing protected members, too many methods
-#pylint: disable=W0212,R0904
+#pylint: disable=I0011,W0212,R0904
 
 from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
 from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
@@ -35,30 +35,18 @@ from hamcrest import none
 from hamcrest import is_not
 from hamcrest import described_as
 
-from nti.contentsearch import interfaces as search_interfaces
-import nti.contentsearch
 
 import pyramid.config
 
-
-from webtest import TestApp as _TestApp
-
 from nti.app.pyramid_zope import z3c_zpt
 
-
-
 from nti.dataserver import users
-from nti.ntiids import ntiids
-from nti.dataserver import interfaces as nti_interfaces
 
 from nti.dataserver.tests import mock_dataserver
 
 
-from urllib import quote as UQ
-
 from zope import interface
 from zope import component
-from zope.deprecation import __show__
 
 
 import zope.deferredimport
@@ -89,6 +77,7 @@ class _TestBaseMixin(object):
 	set_up_mailer = True
 	config = None
 	request = None
+	_ds = None
 
 	def beginRequest( self, request_factory=DummyRequest, request_args=() ):
 		_create_request( self, request_factory, request_args )
@@ -97,12 +86,43 @@ class _TestBaseMixin(object):
 
 	def get_ds(self):
 		"Convenience for when you have imported mock_dataserver and used @WithMockDS/Trans"
-		return getattr( self, '_ds', mock_dataserver.current_mock_ds )
+		return self._ds or mock_dataserver.current_mock_ds
 
 	def set_ds(self,ds):
 		"setable for backwards compat"
 		self._ds = ds
 	ds = property( get_ds, set_ds )
+
+	default_user_extra_interfaces = ()
+	default_username = b'sjohnson@nextthought.COM'
+
+	#: Set this to the username or NTIID of a community that users
+	#: created with :meth:`_create_user` should be added to.
+	default_community = None
+
+	def _create_user(self, username=None, password='temp001', **kwargs):
+		if username is None:
+			# BWC with the old name if it is being set at the class level
+			username = getattr(self, 'extra_environ_default_user', self.default_username).lower()
+			ifaces = self.default_user_extra_interfaces
+		else:
+			ifaces = kwargs.pop( 'extra_interfaces', () )
+
+		user = users.User.create_user( self.ds, username=username, password=password, **kwargs)
+		interface.alsoProvides( user, ifaces )
+
+		if self.default_community:
+			comm = users.Community.get_community( self.default_community, self.ds )
+			if not comm:
+				comm = users.Community.create_community( self.ds, username=self.default_community )
+			user.record_dynamic_membership( comm )
+
+		return user
+
+	def _get_user(self, username=None):
+		if username is None:
+			username = self.default_username.lower()
+		return users.User.get_user(username, self.ds)
 
 	def has_permission( self, permission ):
 		return has_permission( permission, self.request )

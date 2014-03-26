@@ -25,8 +25,9 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 	Unknown keyword arguments are passed to :func:`.WithMockDS`.
 
 	:keyword users: Either `True`, or a sequence of strings naming users. If True,
-		 then the standard user is created. If a sequence, then the standard user,
-		 followed by each named user is created.
+		then the standard user is created. If a sequence, then the standard user,
+		followed by each named user is created. This is done by calling a method
+		``_create_user`` on ``self``.
 	:keyword bool default_authenticate: Only used if ``users`` was a sequence
 		(and so we have created at least two users). If set to `True` (NOT the default),
 		then ``self.testapp`` will be authenticated by the standard user.
@@ -80,8 +81,11 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 		kwargs['with_changes'] = True # make sure the DS gets it
 
 	if len(args) == 1 and not kwargs:
+		# being used as a decorator:
+		# @WithSharedApplicatonMockDS
+		# def test_foo(...):
+
 		kwargs = {'base_storage': lambda self: self._storage_base}
-		# being used as a decorator
 		func = args[0]
 
 		@functools.wraps(func)
@@ -95,8 +99,12 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 
 		return f
 
-	# Being used as a decorator factory
-	kwargs['base_storage'] = lambda self: self._storage_base
+	# Being used as a decorator factory:
+	# @WithSharedApplicationMockDS(...)
+	# def test_foo(...):
+
+	# Are we in a layer that set up shared storage for us?
+	kwargs['base_storage'] = lambda self: getattr(self, '_storage_base', None)
 	def factory(func):
 		@functools.wraps(func)
 		@mock_dataserver.WithMockDS(**kwargs)
