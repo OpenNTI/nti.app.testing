@@ -49,7 +49,8 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 
 	if testapp:
 		def _make_app(self):
-			if users_to_create is True or (users_to_create and default_authenticate):
+			if ((users_to_create is True and default_authenticate is not False)
+				or (users_to_create and default_authenticate)):
 				self.testapp = TestApp( self.app, extra_environ=self._make_extra_environ() )
 			else:
 				self.testapp = TestApp( self.app )
