@@ -199,6 +199,7 @@ def _create_app(cls, *args, **kwargs):
 								 devmode=cls.APP_IN_DEVMODE,
 								 testmode=True,
 								 zcml_features=cls.features,
+								 secure_cookies=False, # so we can authenticate with webtest cookies
 								 **cls._extra_app_settings())
 	cls._storage_base = _ds[0].db.storage
 	_ds[0].close() # closing closes the storage and deletes the attribute
