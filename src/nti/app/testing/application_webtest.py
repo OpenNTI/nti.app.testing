@@ -355,7 +355,7 @@ class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def _extra_app_settings(cls):
-		return {}
+		return {'force_devmode_off': True}
 
 	@classmethod
 	def setUp(cls):
