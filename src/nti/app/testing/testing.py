@@ -76,6 +76,9 @@ def monkey_patch_webtest_json_to_simplejson():
 	webtest.app.loads = simplejson.loads
 	webtest.utils.dumps = simplejson.dumps
 	webtest.utils.loads = simplejson.loads
+	# Added in 2.0.15: the ability to set a JSONEncoder in the app;
+	# we have to patch it to keep consistent
+	webtest.app.json = simplejson
 monkey_patch_webtest_json_to_simplejson()
 
 def monkey_patch_webtest_form20_to_not_be_stupid():
