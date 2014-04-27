@@ -64,6 +64,8 @@ class _AppTestBaseMixin(TestBaseMixin):
 		password = str(kwargs.pop('user_password', 'temp001'))
 
 		# Simulate what some browsers or command line clients do by encoding the '@'
+		# As of WebTest 2.0.15, see also TestApp.authorization:
+		#  app.authorization = ('Basic', ('user', 'password'))
 		user = user.replace( '@', "%40" )
 		result = {
 			b'HTTP_AUTHORIZATION': b'Basic ' + (user + ':%s' % password).encode('base64'),
