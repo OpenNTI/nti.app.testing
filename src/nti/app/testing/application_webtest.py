@@ -73,6 +73,17 @@ class _AppTestBaseMixin(TestBaseMixin):
 			b'HTTP_USER_AGENT': b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.6 (KHTML, like Gecko) Chrome/23.0.1239.0 Safari/537.6',
 			b'paste.throw_errors': True, # Cause paste to throw everything in case it gets in the pipeline
 			b'paste.testing': True, # Let lower layers know we're testing
+			# WebTest by default sets a content type of 'application/x-www-form-urlencoded'
+			# if we do not otherwise specify one, but does not otherwise mess with the body.
+			# If you happen to access request.POST, though, (like locale negotiation does, or
+			# certain template operations do) the underlying WebOb will notice the content-type
+			# and attempt to decode the body based on that. This leads to a badly corrupted
+			# body (if it was JSON) and mysterious failures. This has even been seen in the real
+			# world, when clients neglected to set a content type; apparently browsers also
+			# default to this content type. An internal implementation change (accessing PUT) suddenly meant
+			# that we couldn't read their body. So we default to something sensible here, but the real
+			# fix is to avoid calling put() with already stringified JSON and use put_json
+			b'CONTENT_TYPE': b'text/plain',
 			}
 		for k, v in kwargs.items():
 			k = str(k)
