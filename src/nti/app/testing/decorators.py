@@ -35,7 +35,9 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 		be created.
 	:keyword bool handle_changes: If `True` (NOT the default), the application will
 		have the usual change managers set up (users.onChange, etc).
-
+	:keyword function users_hook: If given, a function that will be called with
+		a mapping {username:user} after we have created all users, in the scope
+		of the transaction.
 	"""
 
 	users_to_create = kwargs.pop( 'users', None )
@@ -46,6 +48,7 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 	testapp = kwargs.pop( 'testapp', None )
 	handle_changes = kwargs.pop( 'handle_changes', False )
 	user_hook = kwargs.pop( 'user_hook', None )
+	users_hook = kwargs.pop( 'users_hook', None )
 
 	if testapp:
 		def _make_app(self):
@@ -74,6 +77,8 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 				if users_to_create and users_to_create is not True:
 					for username in users_to_create:
 						self.users[username] = self._create_user( username )
+				if users_hook:
+					users_hook(self.users)
 	else:
 		def _do_create(self):
 			pass
