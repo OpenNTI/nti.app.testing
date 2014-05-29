@@ -124,6 +124,11 @@ class _TestBaseMixin(object):
 			username = self.default_username.lower()
 		return users.User.get_user(username, self.ds)
 
+	def _get_entity(self, username=None):
+		if username is None:
+			username = self.default_username.lower()
+		return users.User.get_entity(username, self.ds)
+
 	def has_permission( self, permission ):
 		return has_permission( permission, self.request )
 
