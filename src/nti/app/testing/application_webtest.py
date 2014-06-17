@@ -179,6 +179,7 @@ class _AppTestBaseMixin(TestBaseMixin):
 
 AppTestBaseMixin = _AppTestBaseMixin
 import gc
+from nti.contentlibrary.interfaces import IContentPackageLibrary
 def _create_app(cls, *args, **kwargs):
 	# We do some very fragile things to make us work
 	# correctly if *part* of the application has been
@@ -204,8 +205,11 @@ def _create_app(cls, *args, **kwargs):
 		_ds.append( mock_dataserver.MockDataserver(base_storage=None) )
 		return _ds[0]
 
+	library = cls._setup_library()
+	if library is not None:
+		component.getSiteManager().registerUtility(library,
+												   provided=IContentPackageLibrary)
 	cls.app = createApplication( 8080,
-								 cls._setup_library(),
 								 create_ds=create_ds,
 								 force_create_indexmanager=True,
 								 pyramid_config=cls.config,
