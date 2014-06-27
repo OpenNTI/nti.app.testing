@@ -119,6 +119,8 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 			self.ds.redis.flushall()
 			_do_create( self )
 			_make_app( self )
+			if getattr(self, 'setUpDs', None):
+				self.setUpDs(self.ds)
 			func(self)
 		return f
 	return factory
