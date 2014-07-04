@@ -60,9 +60,8 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 
 			if handle_changes:
 				ds = self.ds
-				ix = component.queryUtility( search_interfaces.IIndexManager )
 				from nti.appserver.application import _configure_async_changes # XXX: FIXME
-				_configure_async_changes( ds, ix )
+				_configure_async_changes( ds )
 	else:
 		def _make_app( self ):
 			pass
