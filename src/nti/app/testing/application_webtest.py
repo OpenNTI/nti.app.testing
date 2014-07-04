@@ -211,7 +211,6 @@ def _create_app(cls, *args, **kwargs):
 												   provided=IContentPackageLibrary)
 	cls.app = createApplication( 8080,
 								 create_ds=create_ds,
-								 force_create_indexmanager=True,
 								 pyramid_config=cls.config,
 								 devmode=cls.APP_IN_DEVMODE,
 								 testmode=True,
