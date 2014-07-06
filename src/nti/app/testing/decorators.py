@@ -11,13 +11,11 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
+import warnings
 
 from .webtest import TestApp
 import functools
 from nti.dataserver.tests import mock_dataserver
-
-from nti.contentsearch import interfaces as search_interfaces
 
 def WithSharedApplicationMockDS( *args, **kwargs ):
 	"""
@@ -33,8 +31,6 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 		then ``self.testapp`` will be authenticated by the standard user.
 	:keyword bool testapp: If True (NOT the default) then ``self.testapp`` will
 		be created.
-	:keyword bool handle_changes: If `True` (NOT the default), the application will
-		have the usual change managers set up (users.onChange, etc).
 	:keyword function users_hook: If given, a function that will be called with
 		a mapping {username:user} after we have created all users, in the scope
 		of the transaction.
@@ -46,7 +42,10 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 		users_to_create = (users_to_create,)
 	default_authenticate = kwargs.pop( 'default_authenticate', None )
 	testapp = kwargs.pop( 'testapp', None )
-	handle_changes = kwargs.pop( 'handle_changes', False )
+	if 'handle_changes' in kwargs:
+		val = kwargs.pop( 'handle_changes', False )
+		warnings.warn('handle_changes is always on', DeprecationWarning, stacklevel=1)
+		kwargs['with_changes'] =  val # needed to get the decorator vs factory logic correct below
 	user_hook = kwargs.pop( 'user_hook', None )
 	users_hook = kwargs.pop( 'users_hook', None )
 
@@ -58,10 +57,6 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 			else:
 				self.testapp = TestApp( self.app )
 
-			if handle_changes:
-				ds = self.ds
-				from nti.appserver.application import _configure_async_changes # XXX: FIXME
-				_configure_async_changes( ds )
 	else:
 		def _make_app( self ):
 			pass
@@ -81,9 +76,6 @@ def WithSharedApplicationMockDS( *args, **kwargs ):
 	else:
 		def _do_create(self):
 			pass
-
-	if handle_changes:
-		kwargs['with_changes'] = True # make sure the DS gets it
 
 	if len(args) == 1 and not kwargs:
 		# being used as a decorator:
@@ -131,7 +123,7 @@ def WithSharedApplicationMockDSHandleChanges( *args, **kwargs ):
 		# it look like we're being used as a factory
 		call_factory = True
 
-	kwargs['handle_changes'] = True
+	kwargs['handle_changes'] = True # yes, deprecated, but necessary to ensure kwargs not empty
 	if 'testapp' not in kwargs:
 		kwargs['testapp'] = True
 	result = WithSharedApplicationMockDS( *args, **kwargs )
