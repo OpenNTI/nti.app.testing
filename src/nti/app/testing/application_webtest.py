@@ -45,7 +45,6 @@ class _AppTestBaseMixin(TestBaseMixin):
 	"""
 
 	default_origin = b'http://localhost'
-
 	extra_environ_default_user = alias('default_username')
 
 
