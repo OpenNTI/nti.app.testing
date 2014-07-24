@@ -103,6 +103,15 @@ class _AppTestBaseMixin(TestBaseMixin):
 		return testapp.get( '/dataserver2/users/' + username + path, **kwargs )
 
 
+	def search_users( self, testapp=None, username=None, **kwargs ):
+		if testapp is None:
+			testapp = self.testapp
+		if username is None:
+			username = self.extra_environ_default_user
+
+		return testapp.get( UQ('/dataserver2/UserSearch/' + username), **kwargs )
+
+
 	def resolve_user_response( self, testapp=None, username=None, **kwargs ):
 		if testapp is None:
 			testapp = self.testapp
