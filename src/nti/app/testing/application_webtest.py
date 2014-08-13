@@ -290,7 +290,7 @@ from nti.testing.layers import ConfiguringLayerMixin
 from nti.testing.layers import find_test
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 from .layers import PyramidLayerMixin
-
+from zope.component.hooks import setHooks
 
 class AppCreatingLayerHelper(object):
 
@@ -304,6 +304,7 @@ class AppCreatingLayerHelper(object):
 
 	@classmethod
 	def appSetUp(cls, layer):
+		setHooks() # because a previous teardown might have killed them
 		layer.setUpPyramid()
 		layer.setUpPackages()
 		_create_app(layer)

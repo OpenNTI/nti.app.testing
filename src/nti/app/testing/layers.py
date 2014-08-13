@@ -111,6 +111,7 @@ class PyramidLayerMixin(GCLayerMixin):
 		cls._pwman.tearDownPasswords()
 		cls._pwman = None
 		zope.testing.cleanup.cleanUp()
+		setHooks() # but these must be back!
 
 
 	@classmethod
@@ -137,6 +138,7 @@ class PyramidLayerMixin(GCLayerMixin):
 	def testTearDown(cls):
 		# Must implement
 		pass
+from zope.component.hooks import setHooks
 
 class AppTestLayer(ZopeComponentLayer,
 				   PyramidLayerMixin,
@@ -154,6 +156,7 @@ class AppTestLayer(ZopeComponentLayer,
 		cls.tearDownPackages()
 		cls.tearDownPyramid()
 		zope.testing.cleanup.cleanUp()
+		setHooks() # but these must be back!
 
 	@classmethod
 	def testSetUp(cls, test=None):
@@ -171,13 +174,14 @@ class NewRequestAppTestLayer(AppTestLayer):
 	def setUp(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
-		pass
+		setHooks()
 
 	@classmethod
 	def tearDown(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
 		zope.testing.cleanup.cleanUp()
+		setHooks() # but these must be back!
 
 	@classmethod
 	def testSetUp( cls, test=None ):
