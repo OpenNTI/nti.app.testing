@@ -20,6 +20,7 @@ logger = __import__('logging').getLogger(__name__)
 from zope import interface
 from zope.component import eventtesting
 from zope import component
+from zope.component.hooks import setHooks
 
 from .base import ConfiguringTestBase
 from .base import SharedConfiguringTestBase
@@ -189,6 +190,8 @@ AppTestBaseMixin = _AppTestBaseMixin
 import gc
 from nti.contentlibrary.interfaces import IContentPackageLibrary
 def _create_app(cls, *args, **kwargs):
+	setHooks()
+
 	# We do some very fragile things to make us work
 	# correctly if *part* of the application has been
 	# set up but not torn down...some things live outside
@@ -290,7 +293,7 @@ from nti.testing.layers import ConfiguringLayerMixin
 from nti.testing.layers import find_test
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 from .layers import PyramidLayerMixin
-from zope.component.hooks import setHooks
+
 
 class AppCreatingLayerHelper(object):
 
@@ -313,9 +316,11 @@ class AppCreatingLayerHelper(object):
 	def appTearDown(cls, layer):
 		layer.tearDownPackages()
 		layer.tearDownPyramid()
+		setHooks()
 
 	@classmethod
 	def appTestSetUp(cls, layer, test=None):
+		setHooks()
 		test = test or find_test()
 		layer.setUpTestDS(test)
 		layer.testSetUpPyramid(test)
@@ -354,6 +359,7 @@ class ApplicationTestLayer(ZopeComponentLayer,
 	@classmethod
 	def tearDown(cls):
 		AppCreatingLayerHelper.appTearDown(cls)
+		setHooks()
 
 	@classmethod
 	def testSetUp(cls, test=None):

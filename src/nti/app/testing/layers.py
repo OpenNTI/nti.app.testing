@@ -148,6 +148,7 @@ class AppTestLayer(ZopeComponentLayer,
 	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
+		setHooks()
 		cls.setUpPyramid()
 		cls.setUpPackages()
 
@@ -216,6 +217,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
+		setHooks()
 		cls.setUpPyramid()
 		cls.setUpPackages()
 
@@ -224,6 +226,7 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 		cls.tearDownPackages()
 		cls.tearDownPyramid()
 		zope.testing.cleanup.cleanUp()
+		setHooks()
 
 	@classmethod
 	def testSetUp(cls, test=None):
@@ -237,13 +240,14 @@ class NonDevmodeNewRequestSharedConfiguringTestLayer(NonDevmodeSharedConfiguring
 	def setUp(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
-		pass
+		setHooks()
 
 	@classmethod
 	def tearDown(cls):
 		# You MUST implement this, otherwise zope.testrunner
 		# will call the super-class again
 		zope.testing.cleanup.cleanUp()
+		setHooks()
 
 	@classmethod
 	def testSetUp( cls, test=None ):
