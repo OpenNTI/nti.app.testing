@@ -130,14 +130,14 @@ class _AppTestBaseMixin(TestBaseMixin):
 			testapp = self.testapp
 		return testapp.get( '/dataserver2' )
 
-	def post_user_data(self, ext_obj, testapp=None, username=None, **kwargs):
+	def post_user_data(self, ext_obj, testapp=None, username=None, extra_path='', **kwargs):
 		"""Post the given external data to the given or default user."""
 		if testapp is None:
 			testapp = self.testapp
 		if username is None:
 			username = self.extra_environ_default_user
 
-		return testapp.post_json( UQ('/dataserver2/users/' + username), ext_obj, **kwargs )
+		return testapp.post_json( UQ('/dataserver2/users/' + username + extra_path), ext_obj, **kwargs )
 
 	def fetch_user_activity( self, testapp=None, username=None ):
 		"Using the given or default app, fetch the activity for the given or default user"
