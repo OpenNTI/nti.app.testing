@@ -25,7 +25,7 @@ setup(
 		'Programming Language :: Python :: 2.7',
 		'Topic :: Software Development :: Testing'
 		'Framework :: Pyramid',
-		],
+	],
 	packages=find_packages('src'),
 	package_dir={'': 'src'},
 	namespace_packages=['nti', 'nti.app'],
@@ -33,11 +33,7 @@ setup(
 		'setuptools',
 		'nose',
 		'pyhamcrest',
-		# NOTE: We actually depend on nti.dataserver
-		# as well, but for the sake of legacy
-		# deployments, we do not yet declare that.
-		# We will declare it when everything is in
-		# buildout
+		'nti.testing'
 	],
 	entry_points=entry_points
 )

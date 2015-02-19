@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-
-
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -11,11 +9,15 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+# disable: accessing protected members, too many methods
+# pylint: disable=I0011,W0212,R0904
+
 import warnings
+import functools
+
+from nti.dataserver.tests import mock_dataserver
 
 from .webtest import TestApp
-import functools
-from nti.dataserver.tests import mock_dataserver
 
 def WithSharedApplicationMockDS( *args, **kwargs ):
 	"""

@@ -1,27 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-
-
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
-__test__ = False
 logger = __import__('logging').getLogger(__name__)
 
-from hamcrest import assert_that
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
+
+__test__ = False
+
 from hamcrest import is_
+from hamcrest import assert_that
+
+from pyramid.decorator import reify
+from pyramid.response import Response as _Response
+from pyramid.testing import DummyRequest as _DummyRequest
+
+from webob import BaseRequest as _BaseRequest
 
 from nti.testing.matchers import TypeCheckedDict
 
-from pyramid.testing import DummyRequest as _DummyRequest
-from webob import BaseRequest as _BaseRequest
-from pyramid.response import Response as _Response
-from pyramid.decorator import reify
 class _HeaderList( list ):
+
 	# TODO: Very incomplete, but append is the main method
 	# used by webob
 	def __init__(self, other=()):
@@ -51,8 +56,6 @@ class ByteHeadersResponse(_Response):
 	headerlist = property(_Response._headerlist__get, _headerlist__set,
 						  _Response._headerlist__del, doc=_Response._headerlist__get.__doc__)
 
-
-
 class ByteHeadersDummyRequest(_DummyRequest):
 
 	def __init__( self, **kwargs ):
@@ -75,8 +78,10 @@ class ByteHeadersDummyRequest(_DummyRequest):
 		# NOTE: The super implementation consults the registry to find a factory.
 
 class DummyRequest(ByteHeadersDummyRequest):
+	
 	possible_site_names = ()
 	if_unmodified_since = None
+	
 	def _on_set_header( self, key, val ):
 		from nti.appserver.tweens.zope_site_tween import _get_possible_site_names
 		site_names = _get_possible_site_names( self )

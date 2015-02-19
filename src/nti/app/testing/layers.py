@@ -3,48 +3,42 @@
 """
 Application test layers.
 
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
+logger = __import__('logging').getLogger(__name__)
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 __test__ = False
 
-logger = __import__('logging').getLogger(__name__)
-
-#disable: accessing protected members, too many methods
-#pylint: disable=W0212,R0904
-
+import pyramid
 from pyramid.testing import setUp as psetUp
 from pyramid.testing import tearDown as ptearDown
 
 import ZODB.DemoStorage
 
-from .testing import ITestMailDelivery
-from .testing import TestMailDelivery
-
-
-import pyramid.config
-
+from zope import component
+import zope.testing.cleanup
 
 from nti.app.pyramid_zope import z3c_zpt
 
-from zope import interface
-from zope import component
+from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
-from .base import _PWManagerMixin
-from .base import DummyRequest
-
-
+from nti.testing.layers import find_test
 from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
-from nti.testing.layers import find_test
 
-from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
-import zope.testing.cleanup
+from .base import DummyRequest
+from .base import _PWManagerMixin
+
+from .testing import TestMailDelivery
+from .testing import ITestMailDelivery
 
 class PyramidLayerMixin(GCLayerMixin):
 
@@ -54,7 +48,6 @@ class PyramidLayerMixin(GCLayerMixin):
 	security_policy = None
 
 	_pwman = None
-
 
 	#: A demo storage will be created on top of this
 	#: storage. This can be used to create objects at
@@ -101,8 +94,6 @@ class PyramidLayerMixin(GCLayerMixin):
 					component.provideUtility( cls.security_policy, iface )
 		return cls.config
 
-
-
 	@classmethod
 	def tearDownPyramid( cls ):
 		ptearDown()
@@ -112,7 +103,6 @@ class PyramidLayerMixin(GCLayerMixin):
 		cls._pwman = None
 		zope.testing.cleanup.cleanUp()
 		setHooks() # but these must be back!
-
 
 	@classmethod
 	def testSetUpPyramid( cls, test=None ):
@@ -133,11 +123,11 @@ class PyramidLayerMixin(GCLayerMixin):
 	def testSetUp( cls ):
 		pass
 
-
 	@classmethod
 	def testTearDown(cls):
 		# Must implement
 		pass
+
 from zope.component.hooks import setHooks
 
 class AppTestLayer(ZopeComponentLayer,
@@ -198,8 +188,9 @@ class NewRequestAppTestLayer(AppTestLayer):
 SharedConfiguringTestLayer = AppTestLayer
 NewRequestSharedConfiguringTestLayer = NewRequestAppTestLayer
 
-from .base import TestBaseMixin
 import unittest
+
+from .base import TestBaseMixin
 
 class AppLayerTest(TestBaseMixin,unittest.TestCase):
 	layer = AppTestLayer
@@ -232,7 +223,6 @@ class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 	def testSetUp(cls, test=None):
 		cls.setUpTestDS(test)
 		cls.testSetUpPyramid(test)
-
 
 class NonDevmodeNewRequestSharedConfiguringTestLayer(NonDevmodeSharedConfiguringTestLayer):
 

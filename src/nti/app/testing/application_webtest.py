@@ -5,7 +5,7 @@ Base classes useful for working with application level
 uses of :mod:`webtest`. These bases have some dependencies
 on :mod:`nti.dataserver` and otherwise set up.
 
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -13,30 +13,29 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-#disable: accessing protected members, too many methods
-#pylint: disable=W0212,R0904
-
-
-from zope import interface
-from zope.component import eventtesting
-from zope import component
-from zope.component.hooks import setHooks
-
-from .base import ConfiguringTestBase
-from .base import SharedConfiguringTestBase
-from .base import TestBaseMixin
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 from urllib import quote as UQ
 
-from nti.dataserver import users
-from nti.ntiids import ntiids
-from nti.dataserver import interfaces as nti_interfaces
-from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
+from zope import component
+from zope.component import eventtesting
+from zope.component.hooks import setHooks
 
 from nti.appserver.application import createApplication # TODO: Break this dep
 
+from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
+
+from nti.common.property import alias
+
 from nti.dataserver.tests import mock_dataserver
-from nti.utils.property import alias
+from nti.dataserver import interfaces as nti_interfaces
+
+from nti.ntiids import ntiids
+
+from .base import TestBaseMixin
+from .base import ConfiguringTestBase
+from .base import SharedConfiguringTestBase
 
 class _AppTestBaseMixin(TestBaseMixin):
 	"""
@@ -187,8 +186,11 @@ class _AppTestBaseMixin(TestBaseMixin):
 
 
 AppTestBaseMixin = _AppTestBaseMixin
+
 import gc
+
 from nti.contentlibrary.interfaces import IContentPackageLibrary
+
 def _create_app(cls, *args, **kwargs):
 	setHooks()
 
@@ -287,13 +289,14 @@ class SharedApplicationTestBase(_AppTestBaseMixin,SharedConfiguringTestBase):
 		super(SharedApplicationTestBase,cls).tearDownClass()
 
 
+from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
+
+from nti.testing.layers import find_test
 from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
-from nti.testing.layers import find_test
-from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
-from .layers import PyramidLayerMixin
 
+from .layers import PyramidLayerMixin
 
 class AppCreatingLayerHelper(object):
 
@@ -369,7 +372,6 @@ class ApplicationTestLayer(ZopeComponentLayer,
 	def testTearDown(cls, test=None):
 		AppCreatingLayerHelper.appTestTearDown(cls, test)
 
-
 class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 									 PyramidLayerMixin,
 									 GCLayerMixin,
@@ -404,7 +406,6 @@ class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 	def testTearDown(cls, test=None):
 		AppCreatingLayerHelper.appTestTearDown(cls, test)
 
-
 import unittest
 
 class ApplicationLayerTest(AppTestBaseMixin, unittest.TestCase):
@@ -412,7 +413,6 @@ class ApplicationLayerTest(AppTestBaseMixin, unittest.TestCase):
 
 class NonDevmodeApplicationLayerTest(AppTestBaseMixin, unittest.TestCase):
 	layer = NonDevmodeApplicationTestLayer
-
 
 class ApplicationTestBase(_AppTestBaseMixin, ConfiguringTestBase):
 

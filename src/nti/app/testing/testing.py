@@ -1,14 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
-from __future__ import absolute_import
+from __future__ import print_function, unicode_literals, absolute_import, division
+__docformat__ = "restructuredtext en"
 
-from hamcrest import assert_that
+logger = __import__('logging').getLogger(__name__)
+
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
+
+__test__ = False
+
 from hamcrest import is_
-from hamcrest import is_not
-from hamcrest import none
+from hamcrest import assert_that
+
 from pyramid.testing import setUp as psetUp
 from pyramid.testing import tearDown as ptearDown
 
-__test__ = False
+psetUp = psetUp
+ptearDown = ptearDown
 
 _old_pw_manager = None
 def setUpPackage():
@@ -27,20 +40,17 @@ def tearDownPackage():
 		from nti.dataserver.users import Principal
 		Principal.password_manager_name = _old_pw_manager
 
-
-import pyramid.interfaces
-
-
 from pyramid_mailer.interfaces import IMailer
 from pyramid_mailer.mailer import DummyMailer as _DummyMailer
+
 from repoze.sendmail.interfaces import IMailDelivery
 
 class ITestMailDelivery(IMailer, IMailDelivery):
 	pass
 
-
 import webtest.lint
 from webtest.lint import check_headers as _orig_check_headers
+
 def unicode_check_headers(headers):
 	"""
 	Up through at least WebTest 1.4.0, the middleware in webtest.lint
@@ -58,33 +68,40 @@ def monkey_patch_check_headers():
 	Patches webtest.lint to use :func:`unicode_check_headers`. This module
 	does this on import.
 	"""
-	if webtest.lint.check_headers.__module__ == 'webtest.lint':
+	module = getattr(webtest.lint.check_headers, '__module__', None)
+	if module == 'webtest.lint':
 		webtest.lint.check_headers = unicode_check_headers
 monkey_patch_check_headers()
 
 import simplejson
-import webtest.compat
-import webtest.app
-import webtest.utils
+
 def monkey_patch_webtest_json_to_simplejson():
 	"""
 	Make webtest use the faster simplejson dump/load functions.
 	"""
-	webtest.compat.loads = simplejson.loads
-	webtest.compat.dumps = simplejson.dumps
-	webtest.app.dumps = simplejson.dumps
-	webtest.app.loads = simplejson.loads
-	webtest.utils.dumps = simplejson.dumps
-	webtest.utils.loads = simplejson.loads
+	
+	from webtest import compat
+	compat.loads = simplejson.loads
+	compat.dumps = simplejson.dumps
+	
+	from webtest import app
+	app.dumps = simplejson.dumps
+	app.loads = simplejson.loads
+	
+	from webtest import utils
+	utils.dumps = simplejson.dumps
+	utils.loads = simplejson.loads
 	# Added in 2.0.15: the ability to set a JSONEncoder in the app;
 	# we have to patch it to keep consistent
 	webtest.app.json = simplejson
 monkey_patch_webtest_json_to_simplejson()
 
 def monkey_patch_webtest_form20_to_not_be_stupid():
-	import webtest.forms
-	webtest.forms.Field.value = None # Idiot thing is broken in 2.0
+	from webtest import forms
+	forms.Field.value = None # Idiot thing is broken in 2.0
 monkey_patch_webtest_form20_to_not_be_stupid()
+
+from .request_response import DummyRequest
 
 def _create_request( self, request_factory, request_args ):
 	self.request = request_factory( *request_args )
@@ -97,7 +114,6 @@ def _create_request( self, request_factory, request_args ):
 			# req'd by repoze.who 2.1
 			self.request.environ['REQUEST_METHOD'] = 'UNKNOWN'
 
-
 class TestMailDelivery(_DummyMailer):
 
 	default_sender = 'no-reply@nextthought.com'
@@ -105,10 +121,7 @@ class TestMailDelivery(_DummyMailer):
 	def __init__( self ):
 		super(TestMailDelivery,self).__init__()
 
-
 	def send( self, fromaddr, toaddr, message ):
-		#from IPython.core.debugger import Tracer; Tracer()() ## DEBUG ##
-
 		self.queue.append( message )
 		# compat with pyramid_mailer messages
 		message.subject = message.get( 'Subject' )

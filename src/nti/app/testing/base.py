@@ -3,51 +3,44 @@
 """
 Application layer test bases for defining setup.
 
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
+logger = __import__('logging').getLogger(__name__)
+
+# disable: accessing protected members, too many methods
+# pylint: disable=I0011,W0212,R0904
 
 __test__ = False
 
-logger = __import__('logging').getLogger(__name__)
-
-#disable: accessing protected members, too many methods
-#pylint: disable=I0011,W0212,R0904
-
-from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
-from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
-
-from pyramid.testing import setUp as psetUp
-from pyramid.testing import tearDown as ptearDown
-
-import ZODB.DemoStorage
-
-from .testing import ITestMailDelivery
-from .testing import TestMailDelivery
-
-from nose.tools import assert_raises
-from hamcrest import assert_that
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
+from hamcrest import assert_that
 from hamcrest import described_as
 
+from zope import component
+from zope import interface
 
-import pyramid.config
+import ZODB.DemoStorage
+
+import pyramid
+from pyramid.testing import setUp as psetUp
+from pyramid.testing import tearDown as ptearDown
 
 from nti.app.pyramid_zope import z3c_zpt
 
 from nti.dataserver import users
-
 from nti.dataserver.tests import mock_dataserver
 
+from nti.testing.base import ConfiguringTestBase as _ConfiguringTestBase
+from nti.testing.base import SharedConfiguringTestBase as _SharedConfiguringTestBase
 
-from zope import interface
-from zope import component
-
+from .testing import TestMailDelivery
+from .testing import ITestMailDelivery
 
 import zope.deferredimport
 zope.deferredimport.initialize()
@@ -56,9 +49,9 @@ zope.deferredimport.deprecatedFrom(
 	"nti.app.testing.application_webtest",
 	"SharedApplicationTestBase" )
 
+from .request_response import DummyRequest
 
 from .matchers import has_permission, doesnt_have_permission
-from .request_response import DummyRequest
 
 def _create_request( self, request_factory, request_args ):
 	self.request = request_factory( *request_args )
@@ -135,7 +128,6 @@ class _TestBaseMixin(object):
 	def doesnt_have_permission( self, permission ):
 		return doesnt_have_permission( permission, self.request )
 
-
 	def link_with_rel( self, ext_obj, rel ):
 		for lnk in ext_obj.get( 'Links', () ):
 			if lnk['rel'] == rel:
@@ -167,8 +159,8 @@ class _TestBaseMixin(object):
 
 TestBaseMixin = _TestBaseMixin
 
-
 class _PWManagerMixin(object):
+	
 	_old_pw_manager = None
 
 	def setUpPasswords(self):
@@ -252,7 +244,6 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 	#: to dataservers created at test method set up time.
 	_storage_base = None
 
-
 	@classmethod
 	def setUpClass( cls,
 					request_factory=DummyRequest,
@@ -310,7 +301,6 @@ class SharedConfiguringTestBase(_TestBaseMixin,_SharedConfiguringTestBase):
 
 	def tearDown( self ):
 		super(SharedConfiguringTestBase,self).tearDown()
-
 
 class NewRequestSharedConfiguringTestBase(SharedConfiguringTestBase):
 

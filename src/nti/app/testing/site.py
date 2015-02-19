@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Fixture functions and context managers for making it
-easy to deal with sites.
+Fixture functions and context managers for making it easy to deal with sites.
 
-$Id$
+.. $Id$
 """
 
 from __future__ import print_function, unicode_literals, absolute_import, division
@@ -12,14 +11,19 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
-from nti.dataserver import interfaces as nti_interfaces
+# disable: accessing protected members, too many methods
+# pylint: disable=W0212,R0904
 
 import contextlib
-from ZODB.interfaces import IConnection
+
+from zope import component
 from zope.component.hooks import site as using_site
+
+from ZODB.interfaces import IConnection
+
 import transaction
 
+from nti.dataserver import interfaces as nti_interfaces
 
 @contextlib.contextmanager
 def trivial_transaction_in_root_site():
