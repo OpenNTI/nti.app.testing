@@ -16,7 +16,6 @@ setup(
 	long_description = codecs.open('README.rst', encoding='utf-8').read(),
 	license = 'Proprietary',
 	keywords = 'pyramid testing',
-	#url = 'https://github.com/NextThought/nti.nose_traceback_info',
 	classifiers = [
 		'Intended Audience :: Developers',
 		'Natural Language :: English',
