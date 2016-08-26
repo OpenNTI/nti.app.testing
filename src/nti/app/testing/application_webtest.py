@@ -26,12 +26,12 @@ from nti.appserver.application import createApplication # TODO: Break this dep
 
 from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
 
-from nti.common.property import alias
-
 from nti.dataserver.tests import mock_dataserver
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.ntiids import ntiids
+
+from nti.property.property import alias
 
 from .base import TestBaseMixin
 from .base import ConfiguringTestBase
