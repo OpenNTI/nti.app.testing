@@ -207,7 +207,7 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase,_PWManagerMixin):
 		self.config.setup_registry()
 
 		if pyramid_request and not getattr( self.request, 'registry', None ):
-			self.request.registry = component.getGlobalSiteManager()
+			self.request.registry = component.getSiteManager()
 
 		if self.set_up_mailer:
 			# Must provide the correct zpt template renderer or the email process blows up
