@@ -29,10 +29,13 @@ setup(
 	package_dir={'': 'src'},
 	namespace_packages=['nti', 'nti.app'],
 	install_requires=[
-		'setuptools',
-		'nose',
+		'nti.testing',
+		# XXX: We need to list all the packages we actually import and use.
+		# We mostly get away without doing so because we list things in
+		# python_developer_environment.cfg:[testrunner].
+		'nti.wsgi.cors',
 		'pyhamcrest',
-		'nti.testing'
+		'setuptools',
 	],
 	entry_points=entry_points
 )
