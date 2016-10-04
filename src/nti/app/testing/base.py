@@ -160,7 +160,7 @@ class _TestBaseMixin(object):
 TestBaseMixin = _TestBaseMixin
 
 class _PWManagerMixin(object):
-	
+
 	_old_pw_manager = None
 
 	def setUpPasswords(self):
@@ -207,14 +207,15 @@ class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase,_PWManagerMixin):
 		self.config.setup_registry()
 
 		if pyramid_request and not getattr( self.request, 'registry', None ):
-			self.request.registry = component.getSiteManager()
+			# This should match what we called psetUp with.
+			self.request.registry = component.getGlobalSiteManager()
 
 		if self.set_up_mailer:
 			# Must provide the correct zpt template renderer or the email process blows up
 			# See application.py
 			self.config.include('pyramid_chameleon')
 			self.config.include('pyramid_mako')
-
+			# XXX: We should probably be using the GSM, yes?
 			component.provideUtility( z3c_zpt.renderer_factory,
 									  pyramid.interfaces.IRendererFactory,
 									  name=".pt" )

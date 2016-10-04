@@ -366,11 +366,24 @@ class ApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testSetUp(cls, test=None):
+		# At the beginning of every test, we should have a library in place;
+		# if we don't something has gone very wrong.
+		lib = component.getGlobalSiteManager().queryUtility(IContentPackageLibrary)
+		if lib is None:
+			raise AssertionError("Library gone", find_test())
 		AppCreatingLayerHelper.appTestSetUp(cls, test)
 
 	@classmethod
 	def testTearDown(cls, test=None):
 		AppCreatingLayerHelper.appTestTearDown(cls, test)
+		# At the end of every test, we should have a library in place;
+		# if we don't something's gone very wrong. Optionally, would could verify
+		# that it's the same instance we had when we started the test.
+		# This protects us from bugs in a unit test's tearDown method that gets too
+		# aggressive.
+		lib = component.getGlobalSiteManager().queryUtility(IContentPackageLibrary)
+		if lib is None:
+			raise AssertionError("Library gone", find_test())
 
 class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 									 PyramidLayerMixin,
