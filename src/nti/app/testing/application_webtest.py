@@ -222,14 +222,20 @@ def _create_app(cls, *args, **kwargs):
 	if library is not None:
 		component.getSiteManager().registerUtility(library,
 												   provided=IContentPackageLibrary)
-	cls.app = createApplication( 8080,
-								 create_ds=create_ds,
-								 pyramid_config=cls.config,
-								 devmode=cls.APP_IN_DEVMODE,
-								 testmode=True,
-								 zcml_features=cls.features,
-								 secure_cookies=False, # so we can authenticate with webtest cookies
-								 **cls._extra_app_settings())
+	app, conf_context = createApplication( 8080,
+										   create_ds=create_ds,
+										   pyramid_config=cls.config,
+										   devmode=cls.APP_IN_DEVMODE,
+										   testmode=True,
+										   zcml_features=cls.features,
+										   secure_cookies=False, # so we can authenticate with webtest cookies
+										   _return_xml_conf_machine=True,
+										   **cls._extra_app_settings())
+	cls.app = app
+	# Unconditionally replace the configuration_context with the one we just loaded.
+	# Most of the time, when we create the app, we won't have loaded any packages
+	# anyway. The features will be the same. This way we keep the _seen_files.
+	cls.configuration_context = conf_context
 	cls._storage_base = _ds[0].db.storage
 	_ds[0].close() # closing closes the storage and deletes the attribute
 	cls.current_mock_ds = _ds[0]
@@ -337,6 +343,7 @@ class AppCreatingLayerHelper(object):
 		zope.testing.cleanup.cleanUp()
 		gc.collect()
 		setHooks()
+		layer.configuration_context = None
 
 	@classmethod
 	def appTestSetUp(cls, layer, test=None):
