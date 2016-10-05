@@ -15,12 +15,14 @@ logger = __import__('logging').getLogger(__name__)
 
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
+import gc
 
 from urllib import quote as UQ
 
 from zope import component
 from zope.component import eventtesting
 from zope.component.hooks import setHooks
+from zope.component.hooks import clearSite
 
 from nti.appserver.application import createApplication # TODO: Break this dep
 
@@ -187,8 +189,6 @@ class _AppTestBaseMixin(TestBaseMixin):
 
 AppTestBaseMixin = _AppTestBaseMixin
 
-import gc
-
 from nti.contentlibrary.interfaces import IContentPackageLibrary
 
 def _create_app(cls, *args, **kwargs):
@@ -295,6 +295,7 @@ from nti.testing.layers import find_test
 from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
+import zope.testing.cleanup
 
 from .layers import PyramidLayerMixin
 
@@ -310,15 +311,31 @@ class AppCreatingLayerHelper(object):
 
 	@classmethod
 	def appSetUp(cls, layer):
+		clearSite()
+		assert component.getSiteManager() is component.getGlobalSiteManager()
 		setHooks() # because a previous teardown might have killed them
 		layer.setUpPyramid()
 		layer.setUpPackages()
-		_create_app(layer)
+		try:
+			_create_app(layer)
+		except:
+			# If we fail to create the app, our layer is considered to be
+			# not set up. Therefore, it won't be torn down. But we've already
+			# done lots of work (potentially), so roll us back.
+			print("WARNING: Tearing down layer", layer, "because of failed setup")
+			cls.appTearDown(layer)
+			raise
 
 	@classmethod
 	def appTearDown(cls, layer):
+		# This resets the GSM...
 		layer.tearDownPackages()
 		layer.tearDownPyramid()
+		clearSite()
+		# ... and this resets the sub-sites; see
+		# nti.appserver.policies.sites._reinit
+		zope.testing.cleanup.cleanUp()
+		gc.collect()
 		setHooks()
 
 	@classmethod
@@ -357,12 +374,17 @@ class ApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
+		zope.testing.cleanup.cleanUp() # Make sure we're starting fresh.
 		AppCreatingLayerHelper.appSetUp(cls)
 
 	@classmethod
 	def tearDown(cls):
 		AppCreatingLayerHelper.appTearDown(cls)
 		setHooks()
+
+	@classmethod
+	def setUpPackages(cls):
+		super(ApplicationTestLayer, cls).setUpPackages()
 
 	@classmethod
 	def testSetUp(cls, test=None):
@@ -405,6 +427,7 @@ class NonDevmodeApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
+		zope.testing.cleanup.cleanUp()
 		AppCreatingLayerHelper.appSetUp(cls)
 
 	@classmethod

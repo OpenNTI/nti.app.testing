@@ -30,7 +30,6 @@ from nti.app.pyramid_zope import z3c_zpt
 from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
 from nti.testing.layers import find_test
-from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
@@ -40,7 +39,7 @@ from .base import _PWManagerMixin
 from .testing import TestMailDelivery
 from .testing import ITestMailDelivery
 
-class PyramidLayerMixin(GCLayerMixin):
+class PyramidLayerMixin(object):
 
 
 	_mailer = None
@@ -106,10 +105,15 @@ class PyramidLayerMixin(GCLayerMixin):
 
 	@classmethod
 	def testSetUpPyramid( cls, test=None ):
-		test = test or find_test
+		test = test or find_test()
 		test.config = cls.config
 		if cls._mailer:
 			del cls._mailer.queue[:]
+
+	@classmethod
+	def testTearDownPyramid(cls):
+		test = find_test()
+		del test.config
 
 	@classmethod
 	def setUp(cls):
@@ -132,15 +136,19 @@ from zope.component.hooks import setHooks
 
 class AppTestLayer(ZopeComponentLayer,
 				   PyramidLayerMixin,
-				   GCLayerMixin,
 				   ConfiguringLayerMixin,
 				   DSInjectorMixin):
 	set_up_packages = ('nti.appserver',)
 	@classmethod
 	def setUp(cls):
 		setHooks()
-		cls.setUpPyramid()
-		cls.setUpPackages()
+		try:
+			cls.setUpPyramid()
+			cls.setUpPackages()
+		except:
+			print("WARNING: failed to set up layer", cls, "; cleaning up")
+			cls.tearDown()
+			raise
 
 	@classmethod
 	def tearDown(cls):
@@ -156,8 +164,8 @@ class AppTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def testTearDown(cls):
-		# Must implement
-		pass
+		cls.testTearDownPyramid()
+
 
 class NewRequestAppTestLayer(AppTestLayer):
 
@@ -200,7 +208,6 @@ class NewRequestLayerTest(TestBaseMixin,unittest.TestCase):
 
 class NonDevmodeSharedConfiguringTestLayer(ZopeComponentLayer,
 										   PyramidLayerMixin,
-										   GCLayerMixin,
 										   ConfiguringLayerMixin,
 										   DSInjectorMixin):
 
