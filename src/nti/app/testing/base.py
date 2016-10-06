@@ -16,6 +16,9 @@ logger = __import__('logging').getLogger(__name__)
 
 __test__ = False
 
+import gc
+import weakref
+
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
@@ -149,13 +152,48 @@ class _TestBaseMixin(object):
 		__traceback_info__ = ext_obj, link, rel
 		assert_that( link, is_( none() ), rel )
 
+	@staticmethod
+	def __cleanup_security_policy(wref_to_sm, unregister, restore):
+		gc.collect()
+		sm = wref_to_sm()
+		if sm is None:
+			return # Already gone away, good.
+
+		try:
+			for obj, iface in unregister:
+				sm.unregisterUtility(obj, iface)
+			for obj, iface in restore:
+				sm.registerUtility(obj, iface)
+		except Exception as e:
+			# The SiteManager could have been a persistent utility in a connection that
+			# has now gone away. Hopefully in that case, it was unregistered from the database.
+			print("WARNING: Failed to tear down security policy", e)
+
+
 	def provide_security_policy_from_factory(self, security_policy_factory=None, force_security_policy=True):
-		if security_policy_factory:
-			self.security_policy = security_policy_factory()
-			for iface in pyramid.interfaces.IAuthenticationPolicy, pyramid.interfaces.IAuthorizationPolicy:
-				if iface.providedBy( self.security_policy ) or force_security_policy:
-					component.provideUtility( self.security_policy, iface )
-			return self.security_policy
+		"""
+		The security policy will be reverted at the end of the current test.
+		"""
+		if not security_policy_factory:
+			return
+
+		policy = self.security_policy = security_policy_factory()
+		# capture the SM now so that we can use it in our cleanup, which is called
+		# *after* tearDown()
+		sm = component.getSiteManager()
+		unregister = [] # [(policy, IFace)]
+		restore = [] # [(obj, IFace)]
+		for iface in pyramid.interfaces.IAuthenticationPolicy, pyramid.interfaces.IAuthorizationPolicy:
+			if iface.providedBy( self.security_policy ) or force_security_policy:
+				restore.append((sm.queryUtility(iface)), iface)
+				sm.registerUtility( policy, iface )
+				unregister.append((policy, iface))
+
+		if unregister or restore:
+			# Use a weakref to not artificially extend the lifetime of the SM (which matters
+			# when it has __bases__)
+			self.addCleanup(self.__cleanup_security_policy, weakref.ref(sm), unregister, restore)
+		return self.security_policy
 
 TestBaseMixin = _TestBaseMixin
 
