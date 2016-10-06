@@ -16,9 +16,6 @@ logger = __import__('logging').getLogger(__name__)
 
 __test__ = False
 
-import gc
-import weakref
-
 from hamcrest import is_
 from hamcrest import none
 from hamcrest import is_not
@@ -153,21 +150,21 @@ class _TestBaseMixin(object):
 		assert_that( link, is_( none() ), rel )
 
 	@staticmethod
-	def __cleanup_security_policy(wref_to_sm, unregister, restore):
-		gc.collect()
-		sm = wref_to_sm()
-		if sm is None:
-			return # Already gone away, good.
-
-		try:
-			for obj, iface in unregister:
-				sm.unregisterUtility(obj, iface)
-			for obj, iface in restore:
-				sm.registerUtility(obj, iface)
-		except Exception as e:
-			# The SiteManager could have been a persistent utility in a connection that
-			# has now gone away. Hopefully in that case, it was unregistered from the database.
-			print("WARNING: Failed to tear down security policy", e)
+	def __cleanup_security_policy(unregister, restore):
+		gsm = component.getGlobalSiteManager()
+		# The utilities should not be persistent and attached to a closed connection,
+		# so there should be nothing in here that should raise an exception.
+		for obj, iface in unregister:
+			gsm.unregisterUtility(obj, iface)
+		# Note that we might not have actually unregistered anything.
+		# This could be because of two things:
+		# - Somebody manually changed the registration (multiple calls to this method would
+		#   nest and cleanup in the correct order), in which case we need to clean things up for it
+		# - Or, the whole component registry has been cleaned up (zope.testing.cleanup).
+		#   It's hard to distinguish this case. But registering the original dummy policies
+		#   shouldn't be an issue.
+		for obj, iface in restore:
+			gsm.registerUtility(obj, iface)
 
 
 	def provide_security_policy_from_factory(self, security_policy_factory=None, force_security_policy=True):
@@ -178,21 +175,19 @@ class _TestBaseMixin(object):
 			return
 
 		policy = self.security_policy = security_policy_factory()
-		# capture the SM now so that we can use it in our cleanup, which is called
-		# *after* tearDown()
-		sm = component.getSiteManager()
+		# Use the GSM (which is where pyramid is configured), not the current SM, which is
+		# probably a persistent one
+		gsm = component.getGlobalSiteManager()
 		unregister = [] # [(policy, IFace)]
 		restore = [] # [(obj, IFace)]
 		for iface in pyramid.interfaces.IAuthenticationPolicy, pyramid.interfaces.IAuthorizationPolicy:
 			if iface.providedBy( self.security_policy ) or force_security_policy:
-				restore.append((sm.queryUtility(iface)), iface)
-				sm.registerUtility( policy, iface )
+				restore.append((gsm.queryUtility(iface), iface))
+				gsm.registerUtility( policy, iface )
 				unregister.append((policy, iface))
 
 		if unregister or restore:
-			# Use a weakref to not artificially extend the lifetime of the SM (which matters
-			# when it has __bases__)
-			self.addCleanup(self.__cleanup_security_policy, weakref.ref(sm), unregister, restore)
+			self.addCleanup(self.__cleanup_security_policy, unregister, restore)
 		return self.security_policy
 
 TestBaseMixin = _TestBaseMixin
