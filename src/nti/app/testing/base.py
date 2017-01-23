@@ -9,6 +9,9 @@ Application layer test bases for defining setup.
 from __future__ import print_function, unicode_literals, absolute_import, division
 __docformat__ = "restructuredtext en"
 
+from nti.monkey import patch_pyramid_on_import
+patch_pyramid_on_import.patch()
+
 logger = __import__('logging').getLogger(__name__)
 
 # disable: accessing protected members, too many methods
