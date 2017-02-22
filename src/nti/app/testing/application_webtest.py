@@ -363,6 +363,19 @@ class AppCreatingLayerHelper(object):
 		test = test or find_test()
 		_test_tear_down(test)
 
+import os
+import shutil
+import tempfile
+
+def setChameleonCache(cls):
+	cls.old_cache_dir = os.getenv('CHAMELEON_CACHE')
+	cls.new_cache_dir = tempfile.mkdtemp(prefix="cham_")
+	os.environ['CHAMELEON_CACHE'] = cls.new_cache_dir
+
+def restoreChameleonCache(cls):
+	shutil.rmtree(cls.new_cache_dir, True)
+	os.environ['CHAMELEON_CACHE'] = cls.old_cache_dir
+
 class ApplicationTestLayer(ZopeComponentLayer,
 						   PyramidLayerMixin,
 						   GCLayerMixin,
@@ -384,11 +397,13 @@ class ApplicationTestLayer(ZopeComponentLayer,
 
 	@classmethod
 	def setUp(cls):
+		setChameleonCache(cls)
 		zope.testing.cleanup.cleanUp() # Make sure we're starting fresh.
 		AppCreatingLayerHelper.appSetUp(cls)
 
 	@classmethod
 	def tearDown(cls):
+		restoreChameleonCache(cls)
 		AppCreatingLayerHelper.appTearDown(cls)
 		setHooks()
 
