@@ -200,7 +200,7 @@ class _PWManagerMixin(object):
 	_old_pw_manager = None
 
 	def setUpPasswords(self):
-		from nti.dataserver.users import Principal
+		from nti.dataserver.users.principal import Principal
 		# By switching from the very secure and very expensive
 		# bcrypt default, we speed application-level tests
 		# up (due to faster principal creation and faster password authentication)
@@ -212,7 +212,7 @@ class _PWManagerMixin(object):
 
 	def tearDownPasswords(self):
 		if self._old_pw_manager:
-			from nti.dataserver.users import Principal
+			from nti.dataserver.users.principal import Principal
 			Principal.password_manager_name = self._old_pw_manager
 
 class ConfiguringTestBase(_TestBaseMixin,_ConfiguringTestBase,_PWManagerMixin):

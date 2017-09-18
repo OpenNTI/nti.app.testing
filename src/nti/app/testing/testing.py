@@ -28,7 +28,7 @@ ptearDown = ptearDown
 
 _old_pw_manager = None
 def setUpPackage():
-	from nti.dataserver.users import Principal
+	from nti.dataserver.users.principal import Principal
 	global _old_pw_manager
 	# By switching from the very secure and very expensive
 	# bcrypt default, we speed application-level tests
@@ -40,7 +40,7 @@ def setUpPackage():
 
 def tearDownPackage():
 	if _old_pw_manager:
-		from nti.dataserver.users import Principal
+		from nti.dataserver.users.principal import Principal
 		Principal.password_manager_name = _old_pw_manager
 
 from pyramid_mailer.interfaces import IMailer
