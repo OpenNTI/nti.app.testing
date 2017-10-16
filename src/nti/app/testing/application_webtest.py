@@ -20,7 +20,7 @@ patch_pyramid_on_import.patch()
 # pylint: disable=W0212,R0904
 import gc
 
-from urllib import quote as UQ
+from six.moves import urllib_parse
 
 from zope import component
 from zope.component import eventtesting
@@ -41,6 +41,9 @@ from nti.property.property import alias
 from .base import TestBaseMixin
 from .base import ConfiguringTestBase
 from .base import SharedConfiguringTestBase
+
+UQ = urllib_parse.quote
+
 
 class _AppTestBaseMixin(TestBaseMixin):
 	"""
