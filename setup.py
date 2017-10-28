@@ -1,41 +1,57 @@
-#!/usr/bin/env python
-from setuptools import setup, find_packages
 import codecs
-
-VERSION = '0.0.0'
+from setuptools import setup, find_packages
 
 entry_points = {
 }
 
+
+def _read(fname):
+    with codecs.open(fname, encoding='utf-8') as f:
+        return f.read()
+
+
 setup(
-	name = 'nti.app.testing',
-	version = VERSION,
-	author = 'Jason Madden',
-	author_email = 'jason@nextthought.com',
-	description = "Testing support for application-layer code",
-	long_description = codecs.open('README.rst', encoding='utf-8').read(),
-	license = 'Proprietary',
-	keywords = 'pyramid testing',
-	classifiers = [
-		'Intended Audience :: Developers',
-		'Natural Language :: English',
-		'Operating System :: OS Independent',
-		'Programming Language :: Python :: 2',
-		'Programming Language :: Python :: 2.7',
-		'Topic :: Software Development :: Testing'
-		'Framework :: Pyramid',
-	],
-	packages=find_packages('src'),
-	package_dir={'': 'src'},
-	namespace_packages=['nti', 'nti.app'],
-	install_requires=[
-		'nti.testing',
-		# XXX: We need to list all the packages we actually import and use.
-		# We mostly get away without doing so because we list things in
-		# python_developer_environment.cfg:[testrunner].
-		'nti.wsgi.cors',
-		'pyhamcrest',
-		'setuptools',
-	],
-	entry_points=entry_points
+    name='nti.app.testing',
+    version=_read('version.txt').strip(),
+    author='Jason Madden',
+    author_email='jason@nextthought.com',
+    description="Testing support for application-layer code",
+    long_description=(
+        _read('README.rst')
+        + '\n\n'
+        + _read("CHANGES.rst")
+    ),
+    license='Apache',
+    keywords='pyramid testing',
+    classifiers=[
+        'Framework :: Pyramid',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Topic :: Software Development :: Testing',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+    ],
+    url="https://github.com/NextThought/nti.app.testing",
+    zip_safe=True,
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
+    namespace_packages=['nti', 'nti.app'],
+    install_requires=[
+        'setuptools',
+        'nti.testing',
+        'nti.wsgi.cors',
+        'pyhamcrest',
+    ],
+    extras_require={
+        'docs': [
+            'Sphinx',
+            'repoze.sphinx.autointerface',
+            'sphinx_rtd_theme',
+        ]
+    },
+    entry_points=entry_points,
 )
