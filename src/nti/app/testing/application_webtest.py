@@ -23,15 +23,22 @@ import gc
 from six.moves import urllib_parse
 
 from zope import component
+
 from zope.component import eventtesting
+
 from zope.component.hooks import setHooks
 from zope.component.hooks import clearSite
 
 from nti.appserver.application import createApplication # TODO: Break this dep
 
-from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
+try:
+	from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
+except ImportError:
+	class Library(object):
+		pass
 
 from nti.dataserver.tests import mock_dataserver
+
 from nti.dataserver import interfaces as nti_interfaces
 
 from nti.ntiids import ntiids
