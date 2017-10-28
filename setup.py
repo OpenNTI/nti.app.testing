@@ -43,7 +43,6 @@ setup(
     install_requires=[
         'setuptools',
         'nti.app.pyramid_zope',
-        'nti.contentlibrary',
         'nti.ntiids',
         'nti.monkey',
         'nti.property',
