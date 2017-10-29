@@ -60,6 +60,7 @@ setup(
         'WebTest',
         'ZODB',
         'zope.component',
+        'zope.deferredimport',
         'zope.testing',
     ],
     extras_require={
