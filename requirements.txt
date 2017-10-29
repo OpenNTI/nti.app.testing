@@ -1,0 +1,10 @@
+-e git+https://github.com/NextThought/nti.base.git@master#egg=nti.base
+-e git+https://github.com/NextThought/nti.ntiids.git@master#egg=nti.ntiids
+-e git+https://github.com/NextThought/nti.recorder.git@master#egg=nti.recorder
+-e git+https://github.com/NextThought/nti.publishing.git@master#egg=nti.publishing
+-e git+https://github.com/NextThought/nti.contenttypes.reports.git@master#egg=nti.contenttypes.reports
+-e svn+https://repos.nextthought.com/svn/nti-svn/nti.mimetype/trunk#egg=nti.mimetype
+-e svn+https://repos.nextthought.com/svn/nti-svn/nti.namedfile/trunk#egg=nti.namedfile
+-e svn+https://repos.nextthought.com/svn/nti-svn/nti.traversal/trunk#egg=nti.traversal
+-e svn+https://repos.nextthought.com/svn/nti-svn/nti.dublincore/trunk#egg=nti.dublincore
+-e svn+https://repos.nextthought.com/svn/nti-svn/nti.coremetadata/trunk#egg=nti.coremetadata
