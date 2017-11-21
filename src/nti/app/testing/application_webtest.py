@@ -36,7 +36,7 @@ from nti.appserver.application import createApplication  # TODO: Break this dep
 
 try:
     from nti.contentlibrary.filesystem import StaticFilesystemLibrary as Library
-except ImportError:
+except ImportError:  # pragma: no cover
     class Library(object):
         pass
 

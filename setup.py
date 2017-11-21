@@ -31,6 +31,8 @@ setup(
         'Topic :: Software Development :: Testing',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
@@ -43,6 +45,7 @@ setup(
     install_requires=[
         'setuptools',
         'nti.app.pyramid_zope',
+        'nti.dataserver',
         'nti.ntiids',
         'nti.monkey',
         'nti.property',

@@ -15,13 +15,13 @@ from __future__ import absolute_import
 
 import contextlib
 
-from zope import component
-
-from zope.component.hooks import site as using_site
+import transaction
 
 from ZODB.interfaces import IConnection
 
-import transaction
+from zope import component
+
+from zope.component.hooks import site as using_site
 
 from nti.dataserver.interfaces import IDataserver
 
