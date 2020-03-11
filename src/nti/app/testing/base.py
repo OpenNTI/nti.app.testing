@@ -136,6 +136,8 @@ class _TestBaseMixin(object):
             user.record_dynamic_membership(comm)
 
         # BWC as all nextthought.com users were previously admins
+        # TODO: Require tests to specify they want an admin user, rather
+        #  than the implicit grant below
         if username.lower().endswith("nextthought.com"):
             self._assign_role(ROLE_ADMIN, username)
 
