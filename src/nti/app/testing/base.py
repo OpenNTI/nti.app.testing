@@ -27,6 +27,8 @@ from hamcrest import described_as
 from zope import component
 from zope import interface
 
+from zope.securitypolicy.interfaces import IPrincipalRoleManager
+
 import ZODB.DemoStorage
 
 from pyramid.interfaces import IRendererFactory
@@ -49,6 +51,10 @@ from nti.app.testing.testing import ITestMailDelivery
 from nti.dataserver.tests import mock_dataserver
 
 from nti.dataserver.users.communities import Community
+
+from nti.dataserver.authorization import ROLE_ADMIN
+
+from nti.dataserver.interfaces import IDataserver
 
 from nti.dataserver.users.users import User
 
@@ -118,18 +124,34 @@ class _TestBaseMixin(object):
         else:
             ifaces = kwargs.pop('extra_interfaces', ())
 
-        user = User.create_user(self.ds, username=username, 
+        user = User.create_user(self.ds, username=username,
 							    password=password, **kwargs)
         interface.alsoProvides(user, ifaces)
 
         if self.default_community:
             comm = Community.get_community(self.default_community, self.ds)
             if not comm:
-                comm = Community.create_community(self.ds, 
+                comm = Community.create_community(self.ds,
 												  username=self.default_community)
             user.record_dynamic_membership(comm)
 
+        # BWC as all nextthought.com users were previously admins
+        # TODO: Require tests to specify they want an admin user, rather
+        #  than the implicit grant below
+        if username.lower().endswith("nextthought.com"):
+            self._assign_role(ROLE_ADMIN, username)
+
         return user
+
+    def _assign_role(self, role, username=None):
+        if username is None:
+            username = self.default_username.lower()
+
+        role = getattr(role, 'id', role)
+
+        ds_folder = component.getUtility(IDataserver).dataserver_folder
+        ds_role_manager = IPrincipalRoleManager(ds_folder)
+        ds_role_manager.assignRoleToPrincipal(role, username)
 
     def _get_user(self, username=None):
         if username is None:
@@ -160,7 +182,7 @@ class _TestBaseMixin(object):
     def require_link_href_with_rel(self, ext_obj, rel):
         link = self.link_href_with_rel(ext_obj, rel)
         __traceback_info__ = ext_obj
-        assert_that(link, 
+        assert_that(link,
 					described_as("A link with rel %0", is_not(none()), rel))
         return link
 
@@ -329,7 +351,7 @@ class SharedConfiguringTestBase(_TestBaseMixin, _SharedConfiguringTestBase):
             # See application.py
             cls.config.include('pyramid_chameleon')
             cls.config.include('pyramid_mako')
-            component.provideUtility(z3c_zpt.renderer_factory, 
+            component.provideUtility(z3c_zpt.renderer_factory,
 									 IRendererFactory, name=".pt")
             cls._mailer = mailer = TestMailDelivery()
             component.provideUtility(mailer, ITestMailDelivery)
